@@ -22,6 +22,9 @@ jobs:
       - name: Git Sumbodule Update
         run: |
           git submodule update --init --recursive
+      - name: Create SD Card ZIP
+        run: |
+          zip -r sdcard.zip sdcard
       - name: Create changelog
         run: |
           CHANGELOG=$(python3 .github/workflows/stable_changelog.py)
