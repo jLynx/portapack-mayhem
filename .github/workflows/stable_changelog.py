@@ -2,7 +2,7 @@ import os
 import re
 import sys
 
-raw_git = os.popen('git log v1.4.4..next --pretty=format:"- %h - {USERNAME}*+%al-%an*: %s"').read()
+raw_git = os.popen('git log nightly-tag-2022-04-02-t..next --pretty=format:"- %h - {USERNAME}*+%al-%an*: %s"').read()
 
 
 def compute_username(line):
