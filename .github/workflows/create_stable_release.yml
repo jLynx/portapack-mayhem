@@ -33,12 +33,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: nightly-tag-${{ steps.date.outputs.date }}
-          release_name: Nightly Release - ${{ steps.date.outputs.date }}
+          tag_name: v1.5.1
+          release_name: Mayhem firmware ${{ steps.date.outputs.date }}
           body: |
             **Stable release - v1.5.1**
             This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmware, which itself was a fork of the [PortaPack](https://github.com/sharebrained/portapack-hackrf) firmware, an add-on for the [HackRF](http://greatscottgadgets.com/hackrf/). Please check the [readme](https://github.com/eried/portapack-mayhem/blob/master/README.md) for details.
-            This build is the latest and greatest, although may not be the most stable as this is a nightly release.
             ## Release notes
             ###  Revision (v1.5.1):
             ${{ steps.changelog.outputs.content }}
