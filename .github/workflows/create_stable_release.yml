@@ -10,6 +10,9 @@ jobs:
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      - name: Get version
+        id: version
+        run: echo "::set-output name=version::v1.5.1"
       - name: Checkout 
         uses: actions/checkout@master
         with:
@@ -34,12 +37,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v1.5.1
-          release_name: Mayhem firmware ${{ steps.date.outputs.date }}
+          release_name: Mayhem firmware ${{ steps.versione.outputs.version }}
           body: |
-            **Stable release - v1.5.1**
+            **Stable release - ${{ steps.versione.outputs.version }}**
             This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmware, which itself was a fork of the [PortaPack](https://github.com/sharebrained/portapack-hackrf) firmware, an add-on for the [HackRF](http://greatscottgadgets.com/hackrf/). Please check the [readme](https://github.com/eried/portapack-mayhem/blob/master/README.md) for details.
             ## Release notes
-            ###  Revision (v1.5.1):
+            ###  Revision (${{ steps.versione.outputs.version }}):
             ${{ steps.changelog.outputs.content }}
           draft: true
           prerelease: false
