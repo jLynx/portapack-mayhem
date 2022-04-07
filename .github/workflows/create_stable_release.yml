@@ -1,0 +1,57 @@
+name: Stable Release
+
+on:    
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      - name: Get version
+        id: version
+        run: echo "::set-output name=version::v1.5.1"
+      - name: Checkout 
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 0
+          ref: next
+          submodules: true
+      - name: Git Sumbodule Update
+        run: |
+          git submodule update --init --recursive
+      - name: Create SD Card ZIP
+        run: |
+          zip -r sdcard.zip sdcard
+      - name: Create changelog
+        run: |
+          CHANGELOG=$(python3 .github/workflows/stable_changelog.py)
+          CHANGELOG="${CHANGELOG//'%'/'%25'}"
+          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
+          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
+          echo "::set-output name=content::$CHANGELOG"
+        id: changelog
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v1.5.1
+          release_name: Mayhem firmware ${{ steps.version.outputs.version }}
+          body: |
+            **Stable release - ${{ steps.version.outputs.version }}**
+            This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmware, which itself was a fork of the [PortaPack](https://github.com/sharebrained/portapack-hackrf) firmware, an add-on for the [HackRF](http://greatscottgadgets.com/hackrf/). Please check the [readme](https://github.com/eried/portapack-mayhem/blob/master/README.md) for details.
+            ## Release notes
+            ###  Revision (${{ steps.version.outputs.version }}):
+            ${{ steps.changelog.outputs.content }}
+            
+            ## Installation
+            Check the [wiki](https://github.com/eried/portapack-havoc/wiki/Update-firmware) for details how to upgrade. 
+            ### MicroSD card files
+            For certain functionality, like the world map, GPS simulator, and others you need to uncompress (using [7-zip](https://www.7-zip.org/download.html)) the files from `mayhem_vX.Y.Z_COPY_TO_SDCARD.zip` to a FAT32 formatted MicroSD card.
+          draft: true
+          prerelease: false
+     
