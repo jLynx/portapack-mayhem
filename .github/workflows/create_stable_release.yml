@@ -24,7 +24,7 @@ jobs:
           git submodule update --init --recursive
       - name: Create changelog
         run: |
-          CHANGELOG=$(python3 .github/workflows/changelog.py)
+          CHANGELOG=$(python3 .github/workflows/stable_changelog.py)
           CHANGELOG="${CHANGELOG//'%'/'%25'}"
           CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
           CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
