@@ -44,6 +44,15 @@ jobs:
             ## Release notes
             ###  Revision (${{ steps.version.outputs.version }}):
             ${{ steps.changelog.outputs.content }}
+            
+            ## Installation
+            Check the [wiki](https://github.com/eried/portapack-havoc/wiki/Update-firmware) for details how to upgrade. 
+
+            ### MicroSD card files
+
+            For certain functionality, like the world map, GPS simulator, and others you need to uncompress (using [7-zip](https://www.7-zip.org/download.html)) the files from `mayhem_vX.Y.Z_COPY_TO_SDCARD.zip` to a FAT32 formatted MicroSD card.
+
+            <img src="https://user-images.githubusercontent.com/1091420/81968924-6ae79000-961d-11ea-8da7-dc028a607a3c.png" height="130">
           draft: true
           prerelease: false
      
