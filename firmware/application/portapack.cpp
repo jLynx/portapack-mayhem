@@ -361,7 +361,6 @@ bool init() {
 	i2c0.stop();
 
 	set_clock_config(clock_config_irc);
-
 	cgu::pll1::disable();
 
 	/* Incantation from LPC43xx UM10503 section 12.2.1.1, to bring the M4
@@ -410,16 +409,16 @@ bool init() {
 	clock_manager.enable_second_if_clock();
 	clock_manager.enable_codec_clocks();
 	radio::init();	
-	
-
-	LPC_CREG->DMAMUX = portapack::gpdma_mux;
-	gpdma::controller.enable();
-
-	audio::init(portapack_audio_codec());
 
 	if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
 		// If using a "2021/12 QFP100", press and hold the left button while booting. Should only need to do once.
-		if (portapack::persistent_memory::config_cpld() != 3){
+		const auto switches_state = get_switches_state();
+		/*
+		 * The LEFT key held check seems redundant as its in the portapack_cpld_config().
+		 * But for some reason the persistent_memory check fails on some devices if we dont have the extra check in....
+		 * So dont ask me why that is, but we have to keep this redundant check in for the persistent_memory check to work.
+		 */
+		if (!switches_state[(size_t)ui::KeyEvent::Left] && portapack::persistent_memory::config_cpld() != 3){
 			shutdown_base();
 			return false;
 		}
@@ -428,6 +427,11 @@ bool init() {
 	if( !hackrf::cpld::load_sram() ) {
 		chSysHalt();
 	}
+
+	LPC_CREG->DMAMUX = portapack::gpdma_mux;
+	gpdma::controller.enable();
+
+	audio::init(portapack_audio_codec());
 
 	return true;
 }
