@@ -12,13 +12,15 @@ jobs:
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
       - name: Test
         id: testing
-        run: ls
+        run: |
+          cat .github/workflows/stable_changelog.py
+          cat ${{ github.workspace }}/.github/workflows/version.txt
       - name: Get version
         id: version
         run: echo "::set-output name=version::$(cat ${{ github.workspace }}/.github/workflows/version.txt)"
       - name: Get past version
         id: past_version
-        run: echo "::set-output name=past_version::$(cat ${{ github.workspace }}/.github/workflows/past_version.txt)"
+        run: echo "::set-output name=past_version::$(cat ${{ github.workspace }}/.github/workflows/stable_changelog.py)"
       - name: Checkout 
         uses: actions/checkout@master
         with:
