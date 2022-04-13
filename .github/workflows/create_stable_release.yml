@@ -24,13 +24,13 @@ jobs:
         run: echo "::set-output name=version::$(cat .github/workflows/version.txt)"
       - name: Get past version
         id: past_version
-        run: echo "::set-output name=past_version::$(cat .github/workflows/stable_changelog.py)"
+        run: echo "::set-output name=past_version::$(cat .github/workflows/past_version.txt)"
       - name: Create SD Card ZIP
         run: |
           zip -r sdcard.zip sdcard
       - name: Create changelog
         run: |
-          CHANGELOG=$(python3 .github/workflows/stable_changelog.py `cat .github/workflows/version.txt`)
+          CHANGELOG=$(python3 .github/workflows/stable_changelog.py `cat .github/workflows/past_version.txt`)
           CHANGELOG="${CHANGELOG//'%'/'%25'}"
           CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
           CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
