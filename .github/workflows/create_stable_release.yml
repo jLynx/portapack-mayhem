@@ -15,10 +15,10 @@ jobs:
         run: ls
       - name: Get version
         id: version
-        run: echo "::set-output name=version::$(cat .github/workflows/version.txt)"
+        run: echo "::set-output name=version::$(cat ${{ github.workspace }}/.github/workflows/version.txt)"
       - name: Get past version
         id: past_version
-        run: echo "::set-output name=past_version::$(cat .github/workflows/past_version.txt)"
+        run: echo "::set-output name=past_version::$(cat ${{ github.workspace }}/.github/workflows/past_version.txt)"
       - name: Checkout 
         uses: actions/checkout@master
         with:
