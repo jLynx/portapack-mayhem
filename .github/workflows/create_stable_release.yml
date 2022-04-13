@@ -51,6 +51,8 @@ jobs:
             ###  Revision (${{ steps.version.outputs.version }}):
             ${{ steps.changelog.outputs.content }}
             
+            **Full Changelog**: https://github.com/eried/portapack-mayhem/compare/${{ steps.past_version.outputs.past_version }}...${{ steps.version.outputs.version }}
+
             ## Installation
             Check the [wiki](https://github.com/eried/portapack-havoc/wiki/Update-firmware) for details how to upgrade. 
 
