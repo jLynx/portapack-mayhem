@@ -13,8 +13,8 @@ jobs:
       - name: Test
         id: testing
         run: |
-          cat .github/workflows/stable_changelog.py
-          cat ${{ github.workspace }}/.github/workflows/version.txt
+          CHANGELOG=$(cat .github/workflows/version.txt)
+          echo "::set-output name=content::$CHANGELOG"
       - name: Get version
         id: version
         run: echo "::set-output name=version::$(cat ${{ github.workspace }}/.github/workflows/version.txt)"
