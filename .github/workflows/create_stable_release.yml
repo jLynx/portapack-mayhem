@@ -30,7 +30,7 @@ jobs:
           zip -r sdcard.zip sdcard
       - name: Create changelog
         run: |
-          CHANGELOG=$(python3 .github/workflows/stable_changelog.py ${{ steps.past_version.outputs.past_version }})
+          CHANGELOG=$(python3 .github/workflows/stable_changelog.py `cat .github/workflows/version.txt`)
           CHANGELOG="${CHANGELOG//'%'/'%25'}"
           CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
           CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
