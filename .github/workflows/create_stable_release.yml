@@ -12,7 +12,7 @@ jobs:
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
       - name: Get version
         id: version
-        run: echo "::set-output name=version::v1.5.1"
+        run: echo "::set-output name=version::$(cat .github/workflows/version.txt)"
       - name: Checkout 
         uses: actions/checkout@master
         with:
