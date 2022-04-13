@@ -10,6 +10,9 @@ jobs:
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      - name: Test
+        id: testing
+        run: ls
       - name: Get version
         id: version
         run: echo "::set-output name=version::$(cat .github/workflows/version.txt)"
