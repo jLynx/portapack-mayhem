@@ -44,6 +44,9 @@ jobs:
       - name: Download world map
         run: |
           wget https://github.com/eried/portapack-mayhem/releases/download/nightly-tag-2023-05-21/world_map.zip
+      - name: Unzip world map
+        run: |
+          unzip world_map.zip -d sdcard/ADSB
       - name: Create SD Card ZIP
         run: |
           zip -r sdcard.zip sdcard
