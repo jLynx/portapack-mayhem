@@ -177,12 +177,6 @@ constexpr I2CConfig i2c_config_fast_clock{
     .low_count = i2c_clock_config_400k_fast_clock.i2c_low_count(),
 };
 
-enum class PortaPackModel {
-    R1_20150901,
-    R2_20170522,
-    R2_AG256SL100,
-};
-
 static bool save_config(int8_t value) {
     persistent_memory::set_config_cpld(value);
     if (sd_card::status() == sd_card::Status::Mounted) {
@@ -241,7 +235,7 @@ static int load_config() {
     return config_value.value();
 }
 
-static PortaPackModel portapack_model() {
+PortaPackModel portapack_model() {
     static Optional<PortaPackModel> model;
 
     if (!model.is_valid()) {
@@ -292,20 +286,6 @@ static audio::Codec* portapack_audio_codec() {
                ? static_cast<audio::Codec*>(&audio_codec_wm8731)
                : static_cast<audio::Codec*>(&audio_codec_ak4951);
 }
-
-// template <size_t Size0, size_t Size1, typename T>
-// const static portapack::cpld::Config<Size0, Size1, T>& portapack_cpld_config() {
-//     if (portapack_model() == PortaPackModel::R2_20170522) {
-//         return portapack::cpld::rev_20170522::config>;
-//     } else if (portapack_model() == PortaPackModel::R1_20150901) {
-//         return portapack::cpld::rev_20150901::config;
-//     }
-//     else if(portapack_model() == PortaPackModel::R2_AG256SL100)
-//     {
-//         return portapack::cpld::rev_AG256SL100::config;
-//     }
-//     return portapack::cpld::rev_20170522::config;
-// }
 
 Backlight* backlight() {
     // return (portapack_model() == PortaPackModel::R2_20170522 || portapack_model() == PortaPackModel::R2_AG256SL100)
@@ -518,8 +498,8 @@ bool init() {
     // } else {
     //     result = portapack::cpld::update_if_necessary(portapack_cpld_config<3328, 512, uint16_t>());
     // }
-    // result = portapack::cpld::update_if_necessary(portapack_cpld_config<3328, 512, uint16_t>());
-    result = portapack::cpld::update_if_necessary(portapack_cpld_config());
+    result = portapack::cpld::update_if_necessary(portapack_cpld_config<3328, 512, uint16_t>());
+    // result = portapack::cpld::update_if_necessary(portapack_cpld_config());
 
     // portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(portapack_cpld_config());
     if (result == portapack::cpld::CpldUpdateStatus::Program_failed) {
