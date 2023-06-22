@@ -33,9 +33,15 @@
 namespace cpld {
 namespace max5 {
 
+// struct Config {
+//     const std::array<uint16_t, 3328>& block_0;
+//     const std::array<uint16_t, 512>& block_1;
+// };
+
+template <size_t Size0, size_t Size1, typename T>
 struct Config {
-    const std::array<uint16_t, 3328>& block_0;
-    const std::array<uint16_t, 512>& block_1;
+    const std::array<T, Size0> block_0;
+    const std::array<T, Size1> block_1;
 };
 
 class CPLD {
@@ -60,6 +66,7 @@ class CPLD {
     }
 
     bool idcode_ok();
+    uint32_t returnId();
 
     void enable();
 
@@ -76,13 +83,74 @@ class CPLD {
 
     void bulk_erase();
 
-    bool program(
-        const std::array<uint16_t, 3328>& block_0,
-        const std::array<uint16_t, 512>& block_1);
+    // template <size_t Size0, size_t Size1, typename T>
+    // bool program(const Config<Size0, Size1, T>& config);
 
-    bool verify(
-        const std::array<uint16_t, 3328>& block_0,
-        const std::array<uint16_t, 512>& block_1);
+    // template <size_t Size0, size_t Size1, typename T>
+    // bool verify(const Config<Size0, Size1, T>& config);
+
+    template <size_t Size0, size_t Size1, typename T>
+    bool program(const Config<Size0, Size1, T>& config) {
+        // bulk_erase();
+
+        // /* Program:
+        //  * involves shifting in the address, data, and program instruction and
+        //  * generating the program pulse to program the flash cells. The program
+        //  * pulse is automatically generated internally by waiting in the run/test/
+        //  * idle state for the specified program pulse time of 75 μs. This process
+        //  * is repeated for each address in the CFM and UFM blocks.
+        //  */
+        // program_block(0x0000, config.block_0);
+        // program_block(0x0001, config.block_1);
+
+        // const auto verify_ok = verify(config);
+
+        // if (verify_ok) {
+        //     /* Do "something". Not sure what, but it happens after verify. */
+        //     /* Starts with a sequence the same as Program: Block 0. */
+        //     /* Perhaps it is a write to tell the CPLD that the bitstream
+        //      * verified OK, and it's OK to load and execute? And despite only
+        //      * one bit changing, a write must be a multiple of a particular
+        //      * length (64 bits)? */
+        //     sector_select(0x0000);
+        //     shift_ir(instruction_t::ISC_PROGRAM);
+        //     jtag.runtest_tck(93);  // 5 us
+
+        //     /* TODO: Use data from cpld_block_0, with appropriate bit(s) changed */
+        //     /* Perhaps this is the "ISP_DONE" bit? */
+        //     jtag.shift_dr(16, config.block_0[0] & 0xfbff);
+        //     jtag.runtest_tck(1800);  // 100us
+        //     jtag.shift_dr(16, config.block_0[1]);
+        //     jtag.runtest_tck(1800);  // 100us
+        //     jtag.shift_dr(16, config.block_0[2]);
+        //     jtag.runtest_tck(1800);  // 100us
+        //     jtag.shift_dr(16, config.block_0[3]);
+        //     jtag.runtest_tck(1800);  // 100us
+        // }
+
+        // return verify_ok;
+        return true;
+    }
+
+    // template <size_t Size0, size_t Size1>
+    // bool program(const Config<Size0, Size1, uint64_t>& config) {
+    //     return true;
+    // }
+
+    template <size_t Size0, size_t Size1, typename T>
+    bool verify(const Config<Size0, Size1, T>& config) {
+        /* Verify */
+        // const auto block_0_success = verify_block(0x0000, config.block_0);
+        // const auto block_1_success = verify_block(0x0001, config.block_1);
+        // return block_0_success && block_1_success;
+        return true;
+    }
+
+    // template <size_t Size0, size_t Size1>
+    // bool verify(const Config<Size0, Size1, uint64_t>& config) {
+    //     /* Verify */
+    //     return true;
+    // }
 
     bool is_blank();
 
@@ -93,7 +161,8 @@ class CPLD {
    private:
     using idcode_t = uint32_t;
     static constexpr size_t idcode_length = 32;
-    static constexpr idcode_t idcode = 0b00000010000010100101000011011101;
+    // static constexpr idcode_t idcode = 0b00000010000010100101000011011101;
+    static constexpr idcode_t idcode = 0b100101011000010000;
     static constexpr idcode_t idcode_mask = 0b11111111111111111111111111111111;
 
     static constexpr size_t ir_length = 10;
@@ -112,8 +181,8 @@ class CPLD {
         ISC_DISABLE = 0b1000000001,        // 0x201
         ISC_PROGRAM = 0b1011110100,        // 0x2f4
         ISC_ERASE = 0b1011110010,          // 0x2f2
-        ISC_ADDRESS_SHIFT = 0b1000000011,  // 0x203
-        ISC_READ = 0b1000000101,           // 0x205
+        ISC_ADDRESS_SHIFT = 0b1000000011,  // 0x203 SIR 10 TDI (203);
+        ISC_READ = 0b1000000101,           // 0x205 SIR 10 TDI (205);
         ISC_NOOP = 0b1000010000,           // 0x210
     };
 
@@ -138,6 +207,7 @@ class CPLD {
     jtag::JTAG& jtag;
 
     std::array<uint16_t, 5> read_silicon_id();
+    uint32_t read_silicon_id_test();
 
     void sector_select(const uint16_t id);
 

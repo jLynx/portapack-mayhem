@@ -331,6 +331,9 @@ bool ClockManager::loss_of_signal() {
 }
 
 ClockManager::ReferenceSource ClockManager::detect_reference_source() {
+    // portapack_tcxo_enable();
+    // return ReferenceSource::External;
+
     if (loss_of_signal()) {
         // No external reference. Turn on PortaPack reference (if present).
         portapack_tcxo_enable();

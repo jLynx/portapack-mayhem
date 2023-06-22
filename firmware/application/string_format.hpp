@@ -24,6 +24,7 @@
 
 #include <cstdint>
 #include <string>
+#include <bitset>
 
 #include "file.hpp"
 
@@ -44,6 +45,9 @@ std::string to_string_bin(const uint32_t n, const uint8_t l = 0);
 std::string to_string_dec_uint(const uint32_t n, const int32_t l = 0, const char fill = ' ');
 std::string to_string_dec_int(const int32_t n, const int32_t l = 0, const char fill = 0);
 std::string to_string_decimal(float decimal, int8_t precision);
+
+std::string to_hex_string_uint(const uint32_t n);
+std::string to_bin_string_uint(const uint32_t n);
 
 std::string to_string_hex(const uint64_t n, const int32_t l = 0);
 std::string to_string_hex_array(uint8_t* const array, const int32_t l = 0);

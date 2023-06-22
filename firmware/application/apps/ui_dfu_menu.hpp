@@ -55,7 +55,9 @@ class DfuMenu : public View {
         {{6 * CHARACTER_WIDTH, 9 * LINE_HEIGHT}, "M4 stack:", Color::dark_cyan()},
         {{6 * CHARACTER_WIDTH, 10 * LINE_HEIGHT}, "M4 cpu %:", Color::dark_cyan()},
         {{6 * CHARACTER_WIDTH, 11 * LINE_HEIGHT}, "M4 miss:", Color::dark_cyan()},
-        {{6 * CHARACTER_WIDTH, 12 * LINE_HEIGHT}, "uptime:", Color::dark_cyan()}};
+        {{6 * CHARACTER_WIDTH, 12 * LINE_HEIGHT}, "uptime:", Color::dark_cyan()},
+        {{6 * CHARACTER_WIDTH, 13 * LINE_HEIGHT}, "CPLD ID:", Color::dark_cyan()},
+        {{6 * CHARACTER_WIDTH, 14 * LINE_HEIGHT}, "Clock:", Color::dark_cyan()}};
 
     Text text_info_line_1{{15 * CHARACTER_WIDTH, 5 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
     Text text_info_line_2{{15 * CHARACTER_WIDTH, 6 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
@@ -65,6 +67,8 @@ class DfuMenu : public View {
     Text text_info_line_6{{15 * CHARACTER_WIDTH, 10 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
     Text text_info_line_7{{15 * CHARACTER_WIDTH, 11 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
     Text text_info_line_8{{15 * CHARACTER_WIDTH, 12 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
+    Text text_info_line_9{{15 * CHARACTER_WIDTH, 13 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
+    Text text_info_line_10{{15 * CHARACTER_WIDTH, 14 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
 };
 
 } /* namespace ui */

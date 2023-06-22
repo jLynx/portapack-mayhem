@@ -19,6 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "cpld_update.hpp"
+
 #include "ui_dfu_menu.hpp"
 #include "portapack_shared_memory.hpp"
 #include "performance_counter.hpp"
@@ -36,7 +38,9 @@ DfuMenu::DfuMenu(NavigationView& nav)
                   &text_info_line_5,
                   &text_info_line_6,
                   &text_info_line_7,
-                  &text_info_line_8});
+                  &text_info_line_8,
+                  &text_info_line_9,
+                  &text_info_line_10});
 }
 
 void DfuMenu::paint(Painter& painter) {
@@ -50,6 +54,8 @@ void DfuMenu::paint(Painter& painter) {
     text_info_line_6.set(to_string_dec_uint(shared_memory.m4_cpu_usage, 6));
     text_info_line_7.set(to_string_dec_uint(shared_memory.m4_buffer_missed, 6));
     text_info_line_8.set(to_string_dec_uint(chTimeNow() / 1000, 6));
+    text_info_line_9.set(to_hex_string_uint(portapack::cpld::getId()));
+    text_info_line_10.set(to_string_dec_uint(portapack::clock_manager.get_reference().source));
 
     constexpr auto margin = 5;
     constexpr auto lines = 8 + 2;

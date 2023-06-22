@@ -31,14 +31,17 @@ namespace portapack {
 namespace cpld {
 
 using CPLD = ::cpld::max5::CPLD;
-using Config = ::cpld::max5::Config;
+
+template <size_t Size0, size_t Size1, typename T>
+using Config = ::cpld::max5::Config<Size0, Size1, T>;
+// using Config = ::cpld::max5::Config;
 
 namespace rev_20150901 {
 
 extern const std::array<uint16_t, 3328> block_0;
 extern const std::array<uint16_t, 512> block_1;
 
-const Config config{block_0, block_1};
+const Config<3328, 512, uint16_t> config{block_0, block_1};
 
 } /* namespace rev_20150901 */
 
@@ -47,9 +50,18 @@ namespace rev_20170522 {
 extern const std::array<uint16_t, 3328> block_0;
 extern const std::array<uint16_t, 512> block_1;
 
-const Config config{block_0, block_1};
+const Config<3328, 512, uint16_t> config{block_0, block_1};
 
 } /* namespace rev_20170522 */
+
+namespace rev_AG256SL100 {
+
+extern const std::array<uint64_t, 3606> block_0;
+extern const std::array<uint64_t, 0> block_1;
+
+const Config<3606, 0, uint64_t> config{block_0, block_1};
+
+} /* namespace rev_AG256SL100 */
 
 } /* namespace cpld */
 } /* namespace portapack */

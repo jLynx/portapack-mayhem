@@ -23,6 +23,10 @@
 
 #include "portapack_io.hpp"
 
+// #include "portapack_hal.hpp"
+// #include "portapack_dma.hpp"
+// #include "portapack_cpld_data.hpp"
+
 #include "receiver_model.hpp"
 #include "transmitter_model.hpp"
 
@@ -35,6 +39,8 @@
 #include "radio.hpp"
 #include "clock_manager.hpp"
 #include "temperature_logger.hpp"
+
+// #include "cpld_update.hpp"
 
 /* TODO: This would be better as a class to add
  * guardrails on setting properties. */
@@ -61,6 +67,9 @@ extern bool antenna_bias;
 
 extern TemperatureLogger temperature_logger;
 
+// template <size_t Size0, size_t Size1, typename T>
+// const static portapack::cpld::Config<Size0, Size1, T>& portapack_cpld_config();
+
 /* Get or set the antenna_bias flag.
  * NB: Does not actually update the radio state. */
 void set_antenna_bias(const bool v);
@@ -68,6 +77,21 @@ bool get_antenna_bias();
 
 bool init();
 void shutdown(const bool leave_screen_on = false);
+
+// template <size_t Size0, size_t Size1, typename T>
+// const Config<Size0, Size1, T>& portapack_cpld_config();
+
+template <size_t Size0, size_t Size1, typename T>
+const static cpld::Config<Size0, Size1, T>& portapack_cpld_config() {
+    if (portapack_model() == PortaPackModel::R2_20170522) {
+        return portapack::cpld::rev_20170522::config > ;
+    } else if (portapack_model() == PortaPackModel::R1_20150901) {
+        return portapack::cpld::rev_20150901::config;
+    } else if (portapack_model() == PortaPackModel::R2_AG256SL100) {
+        return portapack::cpld::rev_AG256SL100::config;
+    }
+    return portapack::cpld::rev_20170522::config;
+}
 
 Backlight* backlight();
 

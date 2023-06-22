@@ -55,12 +55,26 @@ class JTAG {
     }
 
     uint32_t shift_ir(const size_t count, const uint32_t value) {
-        /* Run-Test/Idle -> Select-DR-Scan -> Select-IR-Scan */
-        target.clock(1, 0);
-        target.clock(1, 0);
-        /* Scan -> Capture -> Shift */
-        target.clock(0, 0);
-        target.clock(0, 0);
+        bool old = false;
+        if (old) {
+            /* Run-Test/Idle -> Select-DR-Scan -> Select-IR-Scan */
+            target.clock(1, 0);
+            target.clock(1, 0);
+            /* Scan -> Capture -> Shift */
+            target.clock(0, 0);
+            target.clock(0, 0);
+        } else {
+            /* Run-Test/Idle -> Select-DR-Scan */
+            target.clock(1, 0);
+            target.clock(1, 0);
+            target.clock(1, 0);
+            target.clock(1, 0);
+            /* Scan -> Capture -> Shift */
+            target.clock(1, 0);
+            target.clock(0, 0);
+            target.clock(1, 0);
+            target.clock(0, 0);
+        }
 
         const auto result = shift(count, value);
 

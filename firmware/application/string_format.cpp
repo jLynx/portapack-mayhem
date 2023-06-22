@@ -168,6 +168,37 @@ std::string to_string_hex(const uint64_t n, int32_t l) {
     return p;
 }
 
+std::string to_hex_string_uint(const uint32_t n) {
+    constexpr int numChars = sizeof(uint32_t) * 2;  // Number of hexadecimal characters
+    constexpr int numBits = sizeof(uint32_t) * 8;   // Number of bits in uint32_t
+    constexpr int bitsPerChar = 4;                  // Number of bits per hexadecimal character
+
+    std::string hexString(numChars, '0');
+
+    for (int i = 0; i < numChars; ++i) {
+        int shift = (numChars - 1 - i) * bitsPerChar;
+        int hexDigit = (n >> shift) & 0xF;
+        hexString[i] = hexDigit < 10 ? '0' + hexDigit : 'A' + (hexDigit - 10);
+    }
+
+    return "0x" + hexString;
+}
+
+std::string to_bin_string_uint(const uint32_t n) {
+    constexpr int numBits = sizeof(uint32_t) * 8;  // Number of bits in uint32_t
+
+    std::bitset<numBits> bits(n);
+    std::string binaryString = bits.to_string();
+
+    // Find the first '1' in the binary string
+    size_t firstOnePos = binaryString.find('1');
+    if (firstOnePos != std::string::npos) {
+        binaryString = binaryString.substr(firstOnePos);
+    }
+
+    return "0b" + binaryString;
+}
+
 std::string to_string_hex_array(uint8_t* const array, const int32_t l) {
     std::string str_return = "";
     uint8_t bytes;

@@ -180,6 +180,7 @@ constexpr I2CConfig i2c_config_fast_clock{
 enum class PortaPackModel {
     R1_20150901,
     R2_20170522,
+    R2_AG256SL100,
 };
 
 static bool save_config(int8_t value) {
@@ -190,6 +191,18 @@ static bool save_config(int8_t value) {
         auto sucess = file.create("/hardware/settings.txt");
         if (!sucess.is_valid()) {
             file.write_line(to_string_dec_uint(value));
+        }
+    }
+    return true;
+}
+
+static bool save_test(std::string value) {
+    if (sd_card::status() == sd_card::Status::Mounted) {
+        make_new_directory("/hardware");
+        File file;
+        auto sucess = file.create("/hardware/test.txt");
+        if (!sucess.is_valid()) {
+            file.write_line(value);
         }
     }
     return true;
@@ -233,6 +246,7 @@ static PortaPackModel portapack_model() {
 
     if (!model.is_valid()) {
         const auto switches_state = get_switches_state();
+        // model = PortaPackModel::R2_AG256SL100;
         if (switches_state[(size_t)ui::KeyEvent::Up]) {
             save_config(1);
             // model = PortaPackModel::R2_20170522; // Commented these out as they should be set down below anyway
@@ -279,13 +293,22 @@ static audio::Codec* portapack_audio_codec() {
                : static_cast<audio::Codec*>(&audio_codec_ak4951);
 }
 
-static const portapack::cpld::Config& portapack_cpld_config() {
-    return (portapack_model() == PortaPackModel::R2_20170522)
-               ? portapack::cpld::rev_20170522::config
-               : portapack::cpld::rev_20150901::config;
-}
+// template <size_t Size0, size_t Size1, typename T>
+// const static portapack::cpld::Config<Size0, Size1, T>& portapack_cpld_config() {
+//     if (portapack_model() == PortaPackModel::R2_20170522) {
+//         return portapack::cpld::rev_20170522::config>;
+//     } else if (portapack_model() == PortaPackModel::R1_20150901) {
+//         return portapack::cpld::rev_20150901::config;
+//     }
+//     else if(portapack_model() == PortaPackModel::R2_AG256SL100)
+//     {
+//         return portapack::cpld::rev_AG256SL100::config;
+//     }
+//     return portapack::cpld::rev_20170522::config;
+// }
 
 Backlight* backlight() {
+    // return (portapack_model() == PortaPackModel::R2_20170522 || portapack_model() == PortaPackModel::R2_AG256SL100)
     return (portapack_model() == PortaPackModel::R2_20170522)
                ? static_cast<portapack::Backlight*>(&backlight_cat4004)  // R2_20170522
                : static_cast<portapack::Backlight*>(&backlight_on_off);  // R1_20150901
@@ -486,8 +509,21 @@ bool init() {
 
     chThdSleepMilliseconds(10);
 
-    portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(portapack_cpld_config());
+    save_test(to_bin_string_uint(portapack::cpld::getId()));
+
+    portapack::cpld::CpldUpdateStatus result;
+
+    // if (portapack_model() == PortaPackModel::R2_AG256SL100) {
+    //     result = portapack::cpld::update_if_necessary(portapack_cpld_config<3606, 0, uint64_t>());
+    // } else {
+    //     result = portapack::cpld::update_if_necessary(portapack_cpld_config<3328, 512, uint16_t>());
+    // }
+    // result = portapack::cpld::update_if_necessary(portapack_cpld_config<3328, 512, uint16_t>());
+    result = portapack::cpld::update_if_necessary(portapack_cpld_config());
+
+    // portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(portapack_cpld_config());
     if (result == portapack::cpld::CpldUpdateStatus::Program_failed) {
+        save_config(10);
         chThdSleepMilliseconds(10);
         // Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
         // Mode center (autodetect), up (R1) and down (R2,H2,H2+) will go into hackrf mode after failing CPLD update
@@ -495,7 +531,17 @@ bool init() {
             shutdown_base();
             return false;
         }
+    } else if (result == portapack::cpld::CpldUpdateStatus::Idcode_check_failed) {
+        save_config(11);
+    } else if (result == portapack::cpld::CpldUpdateStatus::Silicon_id_check_failed) {
+        save_config(12);
+    } else if (result == portapack::cpld::CpldUpdateStatus::Success) {
+        save_config(13);
+    } else {
+        save_config(14);
     }
+
+    // save_config(portapack::cpld::getId());
 
     if (!hackrf::cpld::load_sram()) {
         chSysHalt();

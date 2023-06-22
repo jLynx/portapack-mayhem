@@ -21,11 +21,6 @@
 
 #include "cpld_max5.hpp"
 
-#include "jtag.hpp"
-
-#include <cstdint>
-#include <array>
-
 namespace cpld {
 namespace max5 {
 
@@ -81,58 +76,6 @@ void CPLD::bulk_erase() {
     erase_sector(0x0000);
 }
 
-bool CPLD::program(
-    const std::array<uint16_t, 3328>& block_0,
-    const std::array<uint16_t, 512>& block_1) {
-    bulk_erase();
-
-    /* Program:
-     * involves shifting in the address, data, and program instruction and
-     * generating the program pulse to program the flash cells. The program
-     * pulse is automatically generated internally by waiting in the run/test/
-     * idle state for the specified program pulse time of 75 μs. This process
-     * is repeated for each address in the CFM and UFM blocks.
-     */
-    program_block(0x0000, block_0);
-    program_block(0x0001, block_1);
-
-    const auto verify_ok = verify(block_0, block_1);
-
-    if (verify_ok) {
-        /* Do "something". Not sure what, but it happens after verify. */
-        /* Starts with a sequence the same as Program: Block 0. */
-        /* Perhaps it is a write to tell the CPLD that the bitstream
-         * verified OK, and it's OK to load and execute? And despite only
-         * one bit changing, a write must be a multiple of a particular
-         * length (64 bits)? */
-        sector_select(0x0000);
-        shift_ir(instruction_t::ISC_PROGRAM);
-        jtag.runtest_tck(93);  // 5 us
-
-        /* TODO: Use data from cpld_block_0, with appropriate bit(s) changed */
-        /* Perhaps this is the "ISP_DONE" bit? */
-        jtag.shift_dr(16, block_0[0] & 0xfbff);
-        jtag.runtest_tck(1800);  // 100us
-        jtag.shift_dr(16, block_0[1]);
-        jtag.runtest_tck(1800);  // 100us
-        jtag.shift_dr(16, block_0[2]);
-        jtag.runtest_tck(1800);  // 100us
-        jtag.shift_dr(16, block_0[3]);
-        jtag.runtest_tck(1800);  // 100us
-    }
-
-    return verify_ok;
-}
-
-bool CPLD::verify(
-    const std::array<uint16_t, 3328>& block_0,
-    const std::array<uint16_t, 512>& block_1) {
-    /* Verify */
-    const auto block_0_success = verify_block(0x0000, block_0);
-    const auto block_1_success = verify_block(0x0001, block_1);
-    return block_0_success && block_1_success;
-}
-
 uint32_t CPLD::crc() {
     crc_t crc{0x04c11db7, 0xffffffff, 0xffffffff};
     block_crc(0, 3328, crc);
@@ -150,6 +93,61 @@ bool CPLD::idcode_ok() {
     shift_ir(instruction_t::IDCODE);
     const auto idcode_read = jtag.shift_dr(idcode_length, 0);
     return (idcode_read == idcode);
+}
+
+//==========================
+// static bool jtag_pp_tck(const bool tms_value)
+// {
+// 	gpio_write(jtag_cpld.gpio->gpio_pp_tms, tms_value);
+
+// 	// 8 ns TMS/TDI to TCK setup
+// 	__asm__("nop");
+// 	__asm__("nop");
+// 	__asm__("nop");
+
+// 	gpio_set(jtag_cpld.gpio->gpio_tck);
+
+// 	// 15 ns TCK to TMS/TDI hold time
+// 	// 20 ns TCK high time
+// 	__asm__("nop");
+// 	__asm__("nop");
+// 	__asm__("nop");
+// 	__asm__("nop");
+// 	__asm__("nop");
+
+// 	gpio_clear(jtag_cpld.gpio->gpio_tck);
+
+// 	// 20 ns TCK low time
+// 	// 25 ns TCK falling edge to TDO valid
+// 	__asm__("nop");
+// 	__asm__("nop");
+// 	__asm__("nop");
+// 	__asm__("nop");
+// 	__asm__("nop");
+// 	__asm__("nop");
+// 	__asm__("nop");
+
+// 	return gpio_read(jtag_cpld.gpio->gpio_pp_tdo);
+// }
+//==========================
+
+uint32_t CPLD::returnId() {
+    //=== WORKING ===
+    // shift_ir(instruction_t::IDCODE);
+    // // jtag.shift_ir(8, 0b11111010);
+
+    // // jtag.runtest_tck(93);  // 5us
+    // // jtag.runtest_tck(1800);  // 100us
+    // // jtag.runtest_tck(18003);  // 1ms
+    // // jtag.runtest_tck(9000003); // 500ms
+
+    // const uint32_t idcode_read = jtag.shift_dr(idcode_length, 0);
+    // return idcode_read;
+
+    //===============
+    const auto silicon_id = read_silicon_id_test();
+
+    return silicon_id;
 }
 
 std::array<uint16_t, 5> CPLD::read_silicon_id() {
@@ -175,11 +173,52 @@ bool CPLD::silicon_id_ok() {
     const auto silicon_id = read_silicon_id();
 
     return (
-        (silicon_id[0] == 0x8232) &&
-        (silicon_id[1] == 0x2aa2) &&
-        (silicon_id[2] == 0x4a82) &&
-        (silicon_id[3] == 0x8c0c) &&
-        (silicon_id[4] == 0x0000));
+        (silicon_id[0] == 0x8232) &&  // 0x5610 // 0x8232
+        (silicon_id[1] == 0x2aa2) &&  // 0x5610 // 0x2aa2
+        (silicon_id[2] == 0x4a82) &&  // 0x5610 // 0x4a82
+        (silicon_id[3] == 0x8c0c) &&  // 0x5610 // 0x8c0c
+        (silicon_id[4] == 0x0000));   // 0x5610 // 0x0C2C
+}
+
+// bool CPLD::silicon_id_ok() {
+
+// jtag.shift_ir(10, 0x203);
+// jtag.runtest_tck(93);   // 5us
+// jtag.shift_dr(13, 0x0089);  // Sector ID
+// jtag.shift_ir(10, 0x205);
+// jtag.runtest_tck(93);   // 5us
+
+// std::array<uint16_t, 5> silicon_id;
+// silicon_id[0] = jtag.shift_dr(16, 0xffff);
+// silicon_id[1] = jtag.shift_dr(16, 0xffff);
+// silicon_id[2] = jtag.shift_dr(16, 0xffff);
+// silicon_id[3] = jtag.shift_dr(16, 0xffff);
+// silicon_id[4] = jtag.shift_dr(16, 0xffff);
+
+// return (
+//     (silicon_id[0] == 0x8232) &&  // 0x5610 // 0x8232
+//     (silicon_id[1] == 0x2aa2) &&  // 0x5610 // 0x2aa2
+//     (silicon_id[2] == 0x4a82) &&  // 0x5610 // 0x4a82
+//     (silicon_id[3] == 0x8c0c) &&  // 0x5610 // 0x8c0c
+//     (silicon_id[4] == 0x0000));   // 0x5610 // 0x0C2C
+// }
+
+uint32_t CPLD::read_silicon_id_test() {
+    jtag.runtest_tck(1);
+    jtag.shift_ir(10, 0x3f8);
+    jtag.runtest_tck(100);
+    jtag.shift_ir(10, 0x3f9);
+    jtag.runtest_tck(100);
+    jtag.shift_ir(10, 0x3f8);
+    jtag.runtest_tck(100);
+    jtag.shift_ir(10, 0x6);
+    jtag.runtest_tck(100);
+
+    uint32_t silicon_id = jtag.shift_dr(32, 0x00000000);
+    // uint32_t silicon_id = jtag.shift_dr(32, 0xffffffff);
+
+    // return silicon_id == 0x00057620;   // 0x5610 // 0x0C2C
+    return silicon_id;
 }
 
 uint32_t CPLD::usercode() {

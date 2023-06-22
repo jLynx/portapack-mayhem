@@ -81,31 +81,129 @@ class GPIOTarget : public Target {
         halPolledDelay(clocks * systicks_per_tck);
     }
 
-    Target::bit_t clock(
-        const Target::bit_t tms_value,
-        const Target::bit_t tdi_value) override {
-        /* TODO: Use more precise timing mechanism, using the frequency
-         * specified by SVF file.
-         */
+    // static bool jtag_pp_tck(const bool tms_value)
+    // {
+    //     gpio_write(jtag_cpld.gpio->gpio_pp_tms, tms_value);
+
+    // // 8 ns TMS/TDI to TCK setup
+    // __asm__("nop");
+    // __asm__("nop");
+    // __asm__("nop");
+
+    // gpio_set(jtag_cpld.gpio->gpio_tck);
+
+    // // 15 ns TCK to TMS/TDI hold time
+    // // 20 ns TCK high time
+    // __asm__("nop");
+    // __asm__("nop");
+    // __asm__("nop");
+    // __asm__("nop");
+    // __asm__("nop");
+
+    // gpio_clear(jtag_cpld.gpio->gpio_tck);
+
+    // // 20 ns TCK low time
+    // // 25 ns TCK falling edge to TDO valid
+    // __asm__("nop");
+    // __asm__("nop");
+    // __asm__("nop");
+    // __asm__("nop");
+    // __asm__("nop");
+    // __asm__("nop");
+    // __asm__("nop");
+
+    // return gpio_read(jtag_cpld.gpio->gpio_pp_tdo);
+    // }
+
+    // Target::bit_t clock(
+    //     const Target::bit_t tms_value,
+    //     const Target::bit_t tdi_value) override {
+    //     // const auto result = tdo();
+    //     tms(tms_value);
+    //     tdi(tdi_value);
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     // __asm__("nop");
+    //     // __asm__("nop");
+    //     // __asm__("nop");
+    //     tck(1);
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     // __asm__("nop");
+    //     tck(0);
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     const auto result2 = tdo();
+    //     return result2;
+    // }
+
+    Target::bit_t clock(const Target::bit_t tms_value, const Target::bit_t tdi_value) override {
         const auto result = tdo();
-        tms(tms_value);
+        tms(tms_value);  // gpio_write(jtag_cpld.gpio->gpio_pp_tms, tms_value);
         tdi(tdi_value);
+
+        // 8 ns TMS/TDI to TCK setup
+        __asm__("nop");
+        __asm__("nop");
+        __asm__("nop");
+        tck(1);  // gpio_set(jtag_cpld.gpio->gpio_tck);
+
+        // 15 ns TCK to TMS/TDI hold time
+        // 20 ns TCK high time
+        __asm__("nop");
+        __asm__("nop");
+        __asm__("nop");
+        __asm__("nop");
+        __asm__("nop");
+        tck(0);  // gpio_clear(jtag_cpld.gpio->gpio_tck);
+
+        // 20 ns TCK low time
+        // 25 ns TCK falling edge to TDO valid
         __asm__("nop");
         __asm__("nop");
         __asm__("nop");
         __asm__("nop");
         __asm__("nop");
         __asm__("nop");
-        tck(1);
         __asm__("nop");
-        __asm__("nop");
-        __asm__("nop");
-        __asm__("nop");
-        __asm__("nop");
-        __asm__("nop");
-        tck(0);
+        // return tdo();
         return result;
     }
+
+    // Target::bit_t clock(
+    //     const Target::bit_t tms_value,
+    //     const Target::bit_t tdi_value) override {
+    //     /* TODO: Use more precise timing mechanism, using the frequency
+    //      * specified by SVF file.
+    //      */
+    //     const auto result = tdo();
+    //     tms(tms_value);
+    //     tdi(tdi_value);
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     tck(1);
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     __asm__("nop");
+    //     tck(0);
+    //     return result;
+    // }
 
    private:
     /* At 200MHz, one 18MHz cycle is 11 systicks. */
