@@ -240,7 +240,7 @@ PortaPackModel portapack_model() {
 
     if (!model.is_valid()) {
         const auto switches_state = get_switches_state();
-        // model = PortaPackModel::R2_AG256SL100;
+        model = PortaPackModel::R2_AG256SL100;
         if (switches_state[(size_t)ui::KeyEvent::Up]) {
             save_config(1);
             // model = PortaPackModel::R2_20170522; // Commented these out as they should be set down below anyway

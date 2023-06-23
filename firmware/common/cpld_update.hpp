@@ -45,9 +45,6 @@ enum class CpldUpdateStatus {
 
 uint32_t getId();
 
-// template <size_t Size0, size_t Size1, typename T>
-// CpldUpdateStatus update_if_necessary(const Config<Size0, Size1, T>& config);
-
 template <size_t Size0, size_t Size1, typename T>
 CpldUpdateStatus update_if_necessary(const Config<Size0, Size1, T>& config) {
     jtag::GPIOTarget target{

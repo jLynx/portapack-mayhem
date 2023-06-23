@@ -150,6 +150,9 @@ class CPLD {
     template <size_t Size0, size_t Size1>
     bool verify(const Config<Size0, Size1, uint64_t>& config) {
         /* Verify */
+        // SIR 10 TDI (3fd); this should be to put it in read mode
+        // then verify with:
+        // SDR 64 TDI (00000000000100c0) TDO (90e0000000000000) MASK (ffffffff00000000);
         return true;
     }
 
@@ -229,11 +232,11 @@ class CPLD {
     template <size_t N>
     void program_block(const uint16_t id, const std::array<uint64_t, N>& data) {
         sector_select(id);
-        shift_ir(0x3fa); //SIR 10 TDI (3fa);
+        shift_ir(0x3fa);          // SIR 10 TDI (3fa);
         jtag.runtest_tck(36000);  // 0.002 sec
 
         for (size_t i = 0; i < data.size(); i++) {
-            jtag.shift_dr(16, data.data()[i]);
+            jtag.shift_dr(64, data.data()[i]);
             jtag.runtest_tck(36000);  // 0.002 sec
         }
     }
