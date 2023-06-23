@@ -103,10 +103,29 @@ class JTAG {
         return result;
     }
 
+    uint64_t shift_dr_64(const size_t count, const uint64_t value) {
+        /* Run-Test/Idle -> Select-DR-Scan */
+        target.clock(1, 0);
+        /* Scan -> Capture -> Shift */
+        target.clock(0, 0);
+        target.clock(0, 0);
+
+        const auto result = shift(count, value);
+
+        /* Exit1 -> Update */
+        target.clock(1, 0);
+        /* Update -> Run-Test/Idle */
+        target.clock(0, 0);
+
+        return result;
+        // return 123;
+    }
+
    private:
     Target& target;
 
     uint32_t shift(const size_t count, uint32_t value);
+    uint64_t shift(const size_t count, uint64_t value);
 };
 
 } /* namespace jtag */

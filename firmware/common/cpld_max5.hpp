@@ -236,7 +236,7 @@ class CPLD {
         jtag.runtest_tck(36000);  // 0.002 sec
 
         for (size_t i = 0; i < data.size(); i++) {
-            jtag.shift_dr(64, data.data()[i]);
+            jtag.shift_dr_64(64, data.data()[i]);
             jtag.runtest_tck(36000);  // 0.002 sec
         }
     }
