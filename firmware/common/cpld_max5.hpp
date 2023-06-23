@@ -134,6 +134,7 @@ class CPLD {
 
     template <size_t Size0, size_t Size1>
     bool program(const Config<Size0, Size1, uint64_t>& config) {
+        program_block(0x0000, config.block_0);
         return true;
     }
 
@@ -223,6 +224,18 @@ class CPLD {
         const uint16_t id,
         const std::array<uint16_t, N>& data) {
         program_block(id, data.data(), data.size());
+    }
+
+    template <size_t N>
+    void program_block(const uint16_t id, const std::array<uint64_t, N>& data) {
+        sector_select(id);
+        shift_ir(0x3fa); //SIR 10 TDI (3fa);
+        jtag.runtest_tck(36000);  // 0.002 sec
+
+        for (size_t i = 0; i < data.size(); i++) {
+            jtag.shift_dr(16, data.data()[i]);
+            jtag.runtest_tck(36000);  // 0.002 sec
+        }
     }
 
     bool verify_block(

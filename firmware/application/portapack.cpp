@@ -522,10 +522,11 @@ bool init() {
 
     if (portapack_model() == PortaPackModel::R2_AG256SL100) {
         result = portapack::cpld::update_if_necessary(portapack::cpld::rev_AG256SL100::config);
-    // } else if (portapack_model() == PortaPackModel::R2_20170522) {
-    //     result = portapack::cpld::update_if_necessary(portapack::cpld::rev_20170522::config);
+    } else if (portapack_model() == PortaPackModel::R2_20170522) {
+        result = portapack::cpld::update_if_necessary(portapack::cpld::rev_20170522::config);
     } else {
-        result = portapack::cpld::update_if_necessary(portapack::cpld::rev_20150901::config);
+        // result = portapack::cpld::update_if_necessary(portapack::cpld::rev_20150901::config);
+        result = portapack::cpld::update_if_necessary(portapack::cpld::rev_20170522::config);
     }
 
     // portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(portapack_cpld_config());
