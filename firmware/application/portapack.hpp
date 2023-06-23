@@ -88,15 +88,22 @@ void shutdown(const bool leave_screen_on = false);
 PortaPackModel portapack_model();
 
 template <size_t Size0, size_t Size1, typename T>
-const cpld::Config<Size0, Size1, T>& portapack_cpld_config() {
+const static cpld::Config<Size0, Size1, T>& portapack_cpld_config() {
     if (portapack_model() == PortaPackModel::R2_20170522) {
+        // const portapack::cpld::Config<3328, 512, uint16_t>& config2 = portapack::cpld::rev_20170522::config;
+        // return config2;
         return cpld::rev_20170522::config;
     } else if (portapack_model() == PortaPackModel::R1_20150901) {
+        // const portapack::cpld::Config<3328, 512, uint16_t>& config1 = portapack::cpld::rev_20150901::config;
+        // return config1;
         return cpld::rev_20150901::config;
-    } 
-    // else if (portapack_model() == PortaPackModel::R2_AG256SL100) {
-    //     return portapack::cpld::rev_AG256SL100::config;
-    // }
+    } else if (portapack_model() == PortaPackModel::R2_AG256SL100) {
+        // const portapack::cpld::Config<3606, 0, uint64_t>& config3 = portapack::cpld::rev_AG256SL100::config;
+        // return config3;
+        return portapack::cpld::rev_AG256SL100::config;
+    }
+    // const portapack::cpld::Config<3328, 512, uint16_t>& config2 = portapack::cpld::rev_20170522::config;
+    // return config2;
     return cpld::rev_20170522::config;
 }
 

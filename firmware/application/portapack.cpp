@@ -498,8 +498,35 @@ bool init() {
     // } else {
     //     result = portapack::cpld::update_if_necessary(portapack_cpld_config<3328, 512, uint16_t>());
     // }
-    result = portapack::cpld::update_if_necessary(portapack_cpld_config<3328, 512, uint16_t>());
+    // result = portapack::cpld::update_if_necessary(portapack_cpld_config<3328, 512, uint16_t>());
     // result = portapack::cpld::update_if_necessary(portapack_cpld_config());
+
+    /*
+     if (portapack_model() == PortaPackModel::R2_20170522) {
+        // const portapack::cpld::Config<3328, 512, uint16_t>& config2 = portapack::cpld::rev_20170522::config;
+        // return config2;
+        return cpld::rev_20170522::config;
+    } else if (portapack_model() == PortaPackModel::R1_20150901) {
+        // const portapack::cpld::Config<3328, 512, uint16_t>& config1 = portapack::cpld::rev_20150901::config;
+        // return config1;
+        return cpld::rev_20150901::config;
+    } else if (portapack_model() == PortaPackModel::R2_AG256SL100) {
+        // const portapack::cpld::Config<3606, 0, uint64_t>& config3 = portapack::cpld::rev_AG256SL100::config;
+        // return config3;
+        return portapack::cpld::rev_AG256SL100::config;
+    }
+    // const portapack::cpld::Config<3328, 512, uint16_t>& config2 = portapack::cpld::rev_20170522::config;
+    // return config2;
+    return cpld::rev_20170522::config;
+    */
+
+    if (portapack_model() == PortaPackModel::R2_AG256SL100) {
+        result = portapack::cpld::update_if_necessary(portapack::cpld::rev_AG256SL100::config);
+    // } else if (portapack_model() == PortaPackModel::R2_20170522) {
+    //     result = portapack::cpld::update_if_necessary(portapack::cpld::rev_20170522::config);
+    } else {
+        result = portapack::cpld::update_if_necessary(portapack::cpld::rev_20150901::config);
+    }
 
     // portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(portapack_cpld_config());
     if (result == portapack::cpld::CpldUpdateStatus::Program_failed) {

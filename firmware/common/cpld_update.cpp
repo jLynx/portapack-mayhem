@@ -21,15 +21,6 @@
 
 #include "cpld_update.hpp"
 
-// #include "hackrf_gpio.hpp"
-// #include "portapack_hal.hpp"
-
-// #include "jtag_target_gpio.hpp"
-// #include "cpld_max5.hpp"
-// #include "cpld_xilinx.hpp"
-// #include "portapack_cpld_data.hpp"
-// #include "hackrf_cpld_data.hpp"
-
 namespace portapack {
 namespace cpld {
 
@@ -44,60 +35,6 @@ uint32_t getId() {
 
     return cpld.returnId();
 }
-
-// template <size_t Size0, size_t Size1, typename T>
-// CpldUpdateStatus update_if_necessary(const Config<Size0, Size1, T>& config) {
-//     jtag::GPIOTarget target{
-//         portapack::gpio_cpld_tck,
-//         portapack::gpio_cpld_tms,
-//         portapack::gpio_cpld_tdi,
-//         portapack::gpio_cpld_tdo};
-//     jtag::JTAG jtag{target};
-//     CPLD cpld{jtag};
-
-//     /* Unknown state */
-//     cpld.reset();
-//     cpld.run_test_idle();
-
-//     /* Run-Test/Idle */
-//     if (!cpld.idcode_ok()) {
-//         return CpldUpdateStatus::Idcode_check_failed;
-//     }
-
-//     cpld.sample();
-//     cpld.bypass();
-//     cpld.enable();
-
-//     /* If silicon ID doesn't match, there's a serious problem. Leave CPLD
-//      * in passive state.
-//      */
-//     if (!cpld.silicon_id_ok()) {
-//         return CpldUpdateStatus::Silicon_id_check_failed;
-//     }
-
-//     /* Verify CPLD contents against current bitstream. */
-//     auto ok = cpld.verify(config.block_0, config.block_1);
-
-//     /* CPLD verifies incorrectly. Erase and program with current bitstream. */
-//     if (!ok) {
-//         ok = cpld.program(config.block_0, config.block_1);
-//     }
-
-//     /* If programming OK, reset CPLD to user mode. Otherwise leave it in
-//      * passive (ISP) state.
-//      */
-//     if (ok) {
-//         cpld.disable();
-//         cpld.bypass();
-
-//         /* Initiate SRAM reload from flash we just programmed. */
-//         cpld.sample();
-//         cpld.clamp();
-//         cpld.disable();
-//     }
-
-//     return ok ? CpldUpdateStatus::Success : CpldUpdateStatus::Program_failed;
-// }
 
 } /* namespace cpld */
 } /* namespace portapack */
