@@ -146,6 +146,12 @@ void CPLD::sector_select(const uint16_t id) {
     jtag.shift_dr(13, id);  // Sector ID
 }
 
+uint32_t CPLD::get_idcode() {
+    shift_ir(instruction_t::IDCODE);
+    const auto idcode_read = jtag.shift_dr(idcode_length, 0);
+    return idcode_read;
+}
+
 bool CPLD::idcode_ok() {
     shift_ir(instruction_t::IDCODE);
     const auto idcode_read = jtag.shift_dr(idcode_length, 0);

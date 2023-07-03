@@ -34,8 +34,8 @@ enum class CpldUpdateStatus {
     Program_failed = 3
 };
 
-CpldUpdateStatus update_if_necessary(
-    const Config config);
+CpldUpdateStatus update_if_necessary(const Config config);
+uint32_t get_idcode();
 
 } /* namespace cpld */
 } /* namespace portapack */

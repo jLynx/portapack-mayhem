@@ -480,12 +480,33 @@ bool init() {
 
     chThdSleepMilliseconds(10);
 
-    portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(portapack_cpld_config());
+    uint32_t idcode = portapack::cpld::get_idcode();
+
+    switch (idcode) {
+        case 0x020A50DD:  // small CPLD
+        {
+            // TODO: where to call this?
+            portapack::cpld::Config cpld_config = portapack_cpld_config();
+            portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(cpld_config);
     if (result == portapack::cpld::CpldUpdateStatus::Program_failed) {
         chThdSleepMilliseconds(10);
         // Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
         // Mode center (autodetect), up (R1) and down (R2,H2,H2+) will go into hackrf mode after failing CPLD update
         if (load_config() != 3 /* left */ && load_config() != 4 /* right */) {
+            shutdown_base();
+            return false;
+        }
+    }
+        } break;
+
+        case 0x00025610:  // big CPLD
+        {
+            // CPLD already programmed so far.
+            // TODO: provide open source CPLD code
+        } break;
+
+        default: {
+            // No compatible portapack attached. Run HackRF Mode.
             shutdown_base();
             return false;
         }

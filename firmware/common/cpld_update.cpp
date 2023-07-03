@@ -33,8 +33,8 @@
 namespace portapack {
 namespace cpld {
 
-CpldUpdateStatus update_if_necessary(
-    const Config config) {
+uint32_t get_idcode() {
+    // TODO: Move to global
     jtag::GPIOTarget target{
         portapack::gpio_cpld_tck,
         portapack::gpio_cpld_tms,
@@ -48,9 +48,23 @@ CpldUpdateStatus update_if_necessary(
     cpld.run_test_idle();
 
     /* Run-Test/Idle */
-    if (!cpld.idcode_ok()) {
-        return CpldUpdateStatus::Idcode_check_failed;
-    }
+    return cpld.get_idcode();
+
+    // if (!cpld.idcode_ok()) {
+    //     return CpldUpdateStatus::Idcode_check_failed;
+    // }
+}
+
+CpldUpdateStatus update_if_necessary(
+    const Config config) {
+    // TODO: Move to global
+    jtag::GPIOTarget target{
+        portapack::gpio_cpld_tck,
+        portapack::gpio_cpld_tms,
+        portapack::gpio_cpld_tdi,
+        portapack::gpio_cpld_tdo};
+    jtag::JTAG jtag{target};
+    CPLD cpld{jtag};
 
     cpld.sample();
     cpld.bypass();
