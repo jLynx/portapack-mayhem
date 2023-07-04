@@ -52,9 +52,12 @@ class CPLD {
     void exit_maintenance_mode();
 
     bool verify(const std::array<uint32_t, 1802>& block_0);
+    bool program(const std::array<uint32_t, 1802>& block_0);
 
     uint32_t update();
-    uint32_t encode_address(uint32_t address);
+    uint32_t encode_address(uint32_t address, uint32_t trailer);
+
+    void panic_screen(uint32_t value);
 
    private:
     using idcode_t = uint32_t;
@@ -64,20 +67,7 @@ class CPLD {
     using ir_t = uint16_t;
 
     enum class instruction_t : ir_t {
-        // BYPASS = 0b1111111111,             // 0x3ff
-        // EXTEST = 0b0000001111,             // 0x00f
-        // SAMPLE = 0b0000000101,             // 0x005
         IDCODE = 0b0000000110,  // 0x006
-        // USERCODE = 0b0000000111,           // 0x007
-        // CLAMP = 0b0000001010,              // 0x00a
-        // HIGHZ = 0b0000001011,              // 0x00b
-        // ISC_ENABLE = 0b1011001100,         // 0x2cc
-        // ISC_DISABLE = 0b1000000001,        // 0x201
-        // ISC_PROGRAM = 0b1011110100,        // 0x2f4
-        // ISC_ERASE = 0b1011110010,          // 0x2f2
-        // ISC_ADDRESS_SHIFT = 0b1000000011,  // 0x203
-        // ISC_READ = 0b1000000101,           // 0x205
-        // ISC_NOOP = 0b1000010000,           // 0x210
         AGM_RESET = 0x3f7,
         AGM_STAGE_1 = 0x3f8,
         AGM_STAGE_2 = 0x3f9,

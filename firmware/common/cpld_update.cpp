@@ -118,16 +118,17 @@ CpldUpdateStatus big_update_if_necessary() {
     auto ok = cpld.verify(data);
 
     if (!ok) {
-        // ok = cpld.program(config.block_0, config.block_1);
-        chDbgPanic("not ok");
+        ok = cpld.program(data);
     }
 
-    // chDbgPanic("ok");
-
-    // auto some_value = cpld.update();
-
+    /* If programming OK, reset CPLD to user mode. Otherwise leave it in
+     * passive (ISP) state.
+     */
+    // if (ok) {
     cpld.exit_maintenance_mode();
-    return CpldUpdateStatus::Success;
+    //}
+
+    return ok ? CpldUpdateStatus::Success : CpldUpdateStatus::Program_failed;
 }
 
 } /* namespace cpld */

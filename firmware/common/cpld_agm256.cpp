@@ -36,8 +36,33 @@
 namespace cpld {
 namespace agm256 {
 
-uint32_t CPLD::encode_address(uint32_t address) {
-    uint32_t p = 0xC0;
+void CPLD::panic_screen(uint32_t value) {
+    shift_ir(instruction_t::AGM_RESET);  // turns off!
+    jtag.runtest_tck(100);
+
+    {  // TODO: Remove Debug output
+        portapack::display.init();
+        portapack::display.wake();
+        portapack::BacklightCAT4004 backlight_cat4004;
+        static_cast<portapack::Backlight*>(&backlight_cat4004)->on();
+    }
+
+    int boot_log_line = 1;
+    ui::Painter painter;
+    ui::Style style_default{
+        .font = ui::font::fixed_8x16,
+        .background = ui::Color::black(),
+        .foreground = ui::Color::white()};
+
+    painter.draw_string({8 * 1, boot_log_line * 20}, style_default, to_string_hex((uint32_t)(value), 8));
+    chDbgPanic("idcode");
+
+    while (true)
+        ;
+}
+
+uint32_t CPLD::encode_address(uint32_t address, uint32_t trailer) {
+    uint32_t p = trailer;
     for (size_t i = 0; i < 18; i++) {
         auto address_bit = (address >> i) & 0x01;
         p |= address_bit << (31 - i);
@@ -54,6 +79,10 @@ void CPLD::enter_maintenance_mode() {
     shift_ir(instruction_t::AGM_STAGE_1);
     jtag.runtest_tck(100);
 
+    shift_ir(instruction_t::AGM_SET_REGISTER);
+    jtag.runtest_tck(100);
+    jtag.shift_dr(8, 0x0);
+
     shift_ir(instruction_t::IDCODE);
     auto idcode = jtag.shift_dr(idcode_length, 0);
 
@@ -64,10 +93,6 @@ void CPLD::enter_maintenance_mode() {
         static_cast<portapack::Backlight*>(&backlight_cat4004)->on();
         chDbgPanic("idcode");
     }
-
-    shift_ir(instruction_t::AGM_SET_REGISTER);
-    jtag.runtest_tck(100);
-    jtag.shift_dr(8, 0xf8);
 }
 
 void CPLD::exit_maintenance_mode() {
@@ -76,19 +101,57 @@ void CPLD::exit_maintenance_mode() {
 }
 
 bool CPLD::verify(const std::array<uint32_t, 1802>& block) {
+    shift_ir(instruction_t::AGM_SET_REGISTER);
+    jtag.runtest_tck(100);
+    jtag.shift_dr(8, 0xf0);
+
     shift_ir(instruction_t::AGM_READ);
     jtag.runtest_tck(100);
 
     auto data = block.data();
 
     for (size_t i = 0; i < block.size(); i++) {
-        auto address = encode_address(i * 4);
+        auto address = encode_address(i * 4, 0xC0);
         const auto from_device = jtag.shift_dr(32, address, 0x0);
         if (from_device != data[i]) {
             return false;
         }
     }
     return true;
+}
+
+bool CPLD::program(const std::array<uint32_t, 1802>& block) {
+    // panic_screen(6);
+    // return false;
+
+    shift_ir(instruction_t::AGM_SET_REGISTER);
+    jtag.runtest_tck(100);
+    jtag.shift_dr(8, 0xf0);
+
+    shift_ir(instruction_t::AGM_ERASE);
+    jtag.runtest_tck(100);
+    jtag.runtest_ms(500);
+
+    shift_ir(instruction_t::AGM_SET_REGISTER);
+    jtag.runtest_tck(100);
+    jtag.shift_dr(8, 0xf0);
+
+    shift_ir(instruction_t::AGM_PROGRAM);
+    jtag.runtest_tck(100);
+
+    auto data = block.data();
+    for (size_t i = 0; i < block.size(); i++) {
+        auto address = encode_address(i * 4, 0x40);
+        jtag.shift_dr(32, address, data[i]);
+        jtag.runtest_ms(2);
+    }
+
+    auto verify_ok = verify(block);
+
+    if (verify_ok == false)
+        panic_screen(77);
+
+    return verify_ok;
 }
 
 uint32_t CPLD::update() {
@@ -113,7 +176,7 @@ uint32_t CPLD::update() {
         //     file.write_line(to_string_hex((uint32_t)(encode_address(address)), 8));
 
         // all zero reads FE
-        auto some_value_two_0 = jtag.shift_dr(32, encode_address(0), 0x0);
+        // auto some_value_two_0 = jtag.shift_dr(32, encode_address(0), 0x0);
         // jtag.shift_dr64_one(32, encode_address(0));            // 0x100000c0
         // auto some_value_two_0 = jtag.shift_dr64_two(32, 0x0);  // 0xc0000100
         // file.write_line(to_string_hex((uint32_t)(some_value_two_0), 8));
@@ -123,7 +186,7 @@ uint32_t CPLD::update() {
 
         // // jtag.prepare_next();
         // jtag.shift_dr64_one(32, encode_address(4));  // 0x200000c0
-        auto some_value_two_1 = jtag.shift_dr(32, encode_address(4), 0x0);
+        // auto some_value_two_1 = jtag.shift_dr(32, encode_address(4), 0x0);
 
         // // jtag.prepare_next();
         // auto some_value_one_2 = jtag.shift_dr64_one(32, 0x200000c0);  // 0x100000c0
@@ -150,10 +213,10 @@ uint32_t CPLD::update() {
             .background = ui::Color::black(),
             .foreground = ui::Color::white()};
 
-        painter.draw_string({8 * 1, boot_log_line * 20}, style_default, to_string_hex((uint32_t)(encode_address(0)), 8));
-        painter.draw_string({8 * 13, boot_log_line++ * 20}, style_default, to_string_hex((uint32_t)(some_value_two_0), 8));
-        painter.draw_string({8 * 1, boot_log_line * 20}, style_default, to_string_hex((uint32_t)(encode_address(4)), 8));
-        painter.draw_string({8 * 13, boot_log_line++ * 20}, style_default, to_string_hex((uint32_t)(some_value_two_1), 8));
+        // painter.draw_string({8 * 1, boot_log_line * 20}, style_default, to_string_hex((uint32_t)(encode_address(0)), 8));
+        // painter.draw_string({8 * 13, boot_log_line++ * 20}, style_default, to_string_hex((uint32_t)(some_value_two_0), 8));
+        // painter.draw_string({8 * 1, boot_log_line * 20}, style_default, to_string_hex((uint32_t)(encode_address(4)), 8));
+        // painter.draw_string({8 * 13, boot_log_line++ * 20}, style_default, to_string_hex((uint32_t)(some_value_two_1), 8));
         // painter.draw_string({8 * 1, boot_log_line * 20}, style_default, to_string_hex((uint32_t)(some_value_one_2), 8));
         // painter.draw_string({8 * 13, boot_log_line++ * 20}, style_default, to_string_hex((uint32_t)(some_value_two_2), 8));
         // painter.draw_string({8 * 1, boot_log_line * 20}, style_default, to_string_hex((uint32_t)(some_value_one_3), 8));
