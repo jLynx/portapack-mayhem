@@ -35,6 +35,7 @@ enum class CpldUpdateStatus {
 };
 
 CpldUpdateStatus update_if_necessary(const Config config);
+CpldUpdateStatus big_update_if_necessary();
 uint32_t get_idcode();
 
 } /* namespace cpld */

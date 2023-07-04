@@ -51,6 +51,9 @@ using asahi_kasei::ak4951::AK4951;
 #include "sd_card.hpp"
 #include "string_format.hpp"
 
+// TODO: Remove
+#include "ui_font_fixed_8x16.hpp"
+
 namespace portapack {
 
 portapack::IO io{
@@ -483,26 +486,26 @@ bool init() {
     uint32_t idcode = portapack::cpld::get_idcode();
 
     switch (idcode) {
-        case 0x020A50DD:  // small CPLD
-        {
-            // TODO: where to call this?
+        case 0x020A50DD: {  // small CPLD
             portapack::cpld::Config cpld_config = portapack_cpld_config();
             portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(cpld_config);
-    if (result == portapack::cpld::CpldUpdateStatus::Program_failed) {
-        chThdSleepMilliseconds(10);
-        // Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
-        // Mode center (autodetect), up (R1) and down (R2,H2,H2+) will go into hackrf mode after failing CPLD update
-        if (load_config() != 3 /* left */ && load_config() != 4 /* right */) {
-            shutdown_base();
-            return false;
-        }
-    }
+            if (result == portapack::cpld::CpldUpdateStatus::Program_failed) {
+                chThdSleepMilliseconds(10);
+                // Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
+                // Mode center (autodetect), up (R1) and down (R2,H2,H2+) will go into hackrf mode after failing CPLD update
+                if (load_config() != 3 /* left */ && load_config() != 4 /* right */) {
+                    shutdown_base();
+                    return false;
+                }
+            }
         } break;
 
-        case 0x00025610:  // big CPLD
-        {
-            // CPLD already programmed so far.
-            // TODO: provide open source CPLD code
+        case 0x00025610: {  // big CPLD
+            portapack::cpld::CpldUpdateStatus result = portapack::cpld::big_update_if_necessary();
+            if (result == portapack::cpld::CpldUpdateStatus::Program_failed) {
+                shutdown_base();
+                return false;
+            }
         } break;
 
         default: {
@@ -511,6 +514,18 @@ bool init() {
             return false;
         }
     }
+
+    // {  // TODO: Remove Debug output
+    //     int boot_log_line = 1;
+    //     ui::Painter painter;
+    //     ui::Style style_default{
+    //         .font = ui::font::fixed_8x16,
+    //         .background = ui::Color::black(),
+    //         .foreground = ui::Color::white()};
+    //     painter.draw_string({8 * 13, boot_log_line * 20}, style_default, to_string_hex((uint32_t)idcode, 8));
+    //     while (true)
+    //         ;
+    // }
 
     if (!hackrf::cpld::load_sram()) {
         chSysHalt();

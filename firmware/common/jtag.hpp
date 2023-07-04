@@ -51,6 +51,9 @@ class JTAG {
     }
 
     void runtest_tck(const size_t count) {
+        for (size_t i = 0; i < count; i++) {
+            target.clock(0, 0);
+        }
         target.delay(count);
     }
 
@@ -89,10 +92,78 @@ class JTAG {
         return result;
     }
 
+    // void initialize_shift_dr64() {
+    //     /* Run-Test/Idle -> Select-DR-Scan */
+    //     target.clock(1, 0);
+    //     /* Scan -> Capture -> Shift */
+    //     target.clock(0, 0);
+    //     target.clock(0, 0);
+    // }
+
+    uint64_t shift_dr64(const size_t count, const uint64_t value) {
+        /* Run-Test/Idle -> Select-DR-Scan */
+        target.clock(1, 0);
+        /* Scan -> Capture -> Shift */
+        target.clock(0, 0);
+        target.clock(0, 0);
+
+        const auto result = shift64(count, value);
+
+        /* Exit1 -> Update */
+        target.clock(1, 0);
+        /* Update -> Run-Test/Idle */
+        target.clock(0, 0);
+
+        return result;
+    }
+
+    uint32_t shift_dr64_one(const size_t count, const uint32_t value) {
+        /* Run-Test/Idle -> Select-DR-Scan */
+        target.clock(1, 0);
+        /* Scan -> Capture -> Shift */
+        target.clock(0, 0);
+        target.clock(0, 0);
+
+        const auto result = shift64_one(count, value);
+
+        return result;
+    }
+
+    uint32_t shift_dr64_two(const size_t count, const uint32_t value) {
+        const auto result = shift64_two(count, value);
+
+        /* Exit1 -> Update */
+        target.clock(1, 0);
+        /* Update -> Run-Test/Idle */
+        target.clock(0, 0);
+
+        return result;
+    }
+
+    // void prepare_next() {
+    //     /* Exit1 -> Pause */
+    //     target.clock(0, 0);
+    //     /* Pause -> Exit2 */
+    //     target.clock(1, 0);
+
+    // /* Exit2 -> Shift */
+    // target.clock(0, 0);
+    // }
+
+    // void finalize_shift_dr64() {
+    //     /* Exit1 -> Update */
+    //     target.clock(1, 0);
+    //     /* Update -> Run-Test/Idle */
+    //     target.clock(0, 0);
+    // }
+
    private:
     Target& target;
 
     uint32_t shift(const size_t count, uint32_t value);
+    uint64_t shift64(const size_t count, uint64_t value);
+    uint32_t shift64_one(const size_t count, uint32_t value);
+    uint32_t shift64_two(const size_t count, uint32_t value);
 };
 
 } /* namespace jtag */

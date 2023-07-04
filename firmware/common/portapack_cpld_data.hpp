@@ -51,6 +51,12 @@ const Config config{block_0, block_1};
 
 } /* namespace rev_20170522 */
 
+namespace rev_AG256SL100 {
+
+extern const std::array<uint64_t, 3606> block_0;
+
+} /* namespace rev_AG256SL100 */
+
 } /* namespace cpld */
 } /* namespace portapack */
 

@@ -23,6 +23,7 @@
 
 #include "hackrf_gpio.hpp"
 #include "portapack_hal.hpp"
+#include "optional.hpp"
 
 #include "jtag_target_gpio.hpp"
 #include "cpld_max5.hpp"
@@ -34,7 +35,6 @@ namespace portapack {
 namespace cpld {
 
 uint32_t get_idcode() {
-    // TODO: Move to global
     jtag::GPIOTarget target{
         portapack::gpio_cpld_tck,
         portapack::gpio_cpld_tms,
@@ -49,15 +49,9 @@ uint32_t get_idcode() {
 
     /* Run-Test/Idle */
     return cpld.get_idcode();
-
-    // if (!cpld.idcode_ok()) {
-    //     return CpldUpdateStatus::Idcode_check_failed;
-    // }
 }
 
-CpldUpdateStatus update_if_necessary(
-    const Config config) {
-    // TODO: Move to global
+CpldUpdateStatus update_if_necessary(const Config config) {
     jtag::GPIOTarget target{
         portapack::gpio_cpld_tck,
         portapack::gpio_cpld_tms,
@@ -99,6 +93,26 @@ CpldUpdateStatus update_if_necessary(
     }
 
     return ok ? CpldUpdateStatus::Success : CpldUpdateStatus::Program_failed;
+}
+
+CpldUpdateStatus big_update_if_necessary() {
+    jtag::GPIOTarget target{
+        portapack::gpio_cpld_tck,
+        portapack::gpio_cpld_tms,
+        portapack::gpio_cpld_tdi,
+        portapack::gpio_cpld_tdo};
+    jtag::JTAG jtag{target};
+    CPLD cpld{jtag};
+
+    const auto& data = portapack::cpld::rev_AG256SL100::block_0;
+
+    /* Unknown state: This is needed every time cpld is constructed! jtag::GPIOTarget will initialize the pins every time. */
+    cpld.reset();
+    cpld.run_test_idle();
+
+    auto some_value = cpld.big_update();
+
+    return CpldUpdateStatus::Success;
 }
 
 } /* namespace cpld */

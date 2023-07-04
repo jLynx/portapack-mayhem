@@ -488,10 +488,10 @@ DeclareTargets(PSTX sstvtx)
 
 ### Test
 
-set(MODE_CPPSRC
-	proc_test.cpp
-)
-DeclareTargets(PTST test)
+# set(MODE_CPPSRC
+# 	proc_test.cpp
+# )
+# DeclareTargets(PTST test)
 
 ### Tones
 

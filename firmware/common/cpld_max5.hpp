@@ -60,9 +60,9 @@ class CPLD {
     }
 
     uint32_t get_idcode();
-    bool idcode_ok();
 
     void enable();
+    uint32_t big_update();
 
     /* Check ID:
      * The silicon ID is checked before any Program or Verify process. The
@@ -94,9 +94,6 @@ class CPLD {
    private:
     using idcode_t = uint32_t;
     static constexpr size_t idcode_length = 32;
-    static constexpr idcode_t idcode = 0b00000010000010100101000011011101; // 0x020A50DD
-    static constexpr idcode_t idcode_mask = 0b11111111111111111111111111111111;
-
     static constexpr size_t ir_length = 10;
 
     using ir_t = uint16_t;
