@@ -54,7 +54,6 @@ class JTAG {
         for (size_t i = 0; i < count; i++) {
             target.clock(0, 0);
         }
-        target.delay(count);
     }
 
     uint32_t shift_ir(const size_t count, const uint32_t value) {

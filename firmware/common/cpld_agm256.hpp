@@ -48,6 +48,11 @@ class CPLD {
         jtag.run_test_idle();
     }
 
+    void enter_maintenance_mode();
+    void exit_maintenance_mode();
+
+    bool verify(const std::array<uint32_t, 1802>& block_0);
+
     uint32_t update();
     uint32_t encode_address(uint32_t address);
 

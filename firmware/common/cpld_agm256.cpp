@@ -46,12 +46,12 @@ uint32_t CPLD::encode_address(uint32_t address) {
     return p;
 }
 
-uint32_t CPLD::update() {
-    shift_ir(instruction_t::AGM_STAGE_1);  // makes all read values 0
+void CPLD::enter_maintenance_mode() {
+    shift_ir(instruction_t::AGM_STAGE_1);
     jtag.runtest_tck(100);
-    shift_ir(instruction_t::AGM_STAGE_2);  // makes all read values -1 (default, restores)
+    shift_ir(instruction_t::AGM_STAGE_2);
     jtag.runtest_tck(100);
-    shift_ir(instruction_t::AGM_STAGE_1);  // makes all read values 0
+    shift_ir(instruction_t::AGM_STAGE_1);
     jtag.runtest_tck(100);
 
     shift_ir(instruction_t::IDCODE);
@@ -62,16 +62,36 @@ uint32_t CPLD::update() {
         portapack::display.wake();
         portapack::BacklightCAT4004 backlight_cat4004;
         static_cast<portapack::Backlight*>(&backlight_cat4004)->on();
-
         chDbgPanic("idcode");
     }
 
-    // turns off, Needed for some data
-    shift_ir(instruction_t::AGM_SET_REGISTER);  // Set Address
+    shift_ir(instruction_t::AGM_SET_REGISTER);
     jtag.runtest_tck(100);
-    // SDR 8 TDI (f8); // TO 0xf8 and 0xf0 both work, 0x00 does not. 0xf8 might be needed for non-readonly?
     jtag.shift_dr(8, 0xf8);
+}
 
+void CPLD::exit_maintenance_mode() {
+    shift_ir(instruction_t::AGM_RESET);
+    jtag.runtest_tck(100);
+}
+
+bool CPLD::verify(const std::array<uint32_t, 1802>& block) {
+    shift_ir(instruction_t::AGM_READ);
+    jtag.runtest_tck(100);
+
+    auto data = block.data();
+
+    for (size_t i = 0; i < block.size(); i++) {
+        auto address = encode_address(i * 4);
+        const auto from_device = jtag.shift_dr(32, address, 0x0);
+        if (from_device != data[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+uint32_t CPLD::update() {
     shift_ir(instruction_t::AGM_READ);  // READ, makes idcode go away
     jtag.runtest_tck(100);
 

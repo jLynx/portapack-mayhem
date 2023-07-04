@@ -60,6 +60,10 @@ CpldUpdateStatus update_if_necessary(const Config config) {
     jtag::JTAG jtag{target};
     CPLD cpld{jtag};
 
+    /* Unknown state */
+    cpld.reset();
+    cpld.run_test_idle();
+
     cpld.sample();
     cpld.bypass();
     cpld.enable();
@@ -104,14 +108,25 @@ CpldUpdateStatus big_update_if_necessary() {
     jtag::JTAG jtag{target};
     CPLD_AGM cpld{jtag};
 
-    const auto& data = portapack::cpld::rev_AG256SL100::block_0;
-
-    /* Unknown state: This is needed every time cpld is constructed! jtag::GPIOTarget will initialize the pins every time. */
     cpld.reset();
     cpld.run_test_idle();
 
-    auto some_value = cpld.update();
+    cpld.enter_maintenance_mode();
 
+    /* Verify CPLD contents against current bitstream. */
+    const auto& data = portapack::cpld::rev_AG256SL100::block_0;
+    auto ok = cpld.verify(data);
+
+    if (!ok) {
+        // ok = cpld.program(config.block_0, config.block_1);
+        chDbgPanic("not ok");
+    }
+
+    // chDbgPanic("ok");
+
+    // auto some_value = cpld.update();
+
+    cpld.exit_maintenance_mode();
     return CpldUpdateStatus::Success;
 }
 
