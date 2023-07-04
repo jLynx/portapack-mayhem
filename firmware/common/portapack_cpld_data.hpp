@@ -23,6 +23,7 @@
 #define __PORTAPACK_CPLD_DATA_H__
 
 #include "cpld_max5.hpp"
+#include "cpld_agm256.hpp"
 
 #include <cstdint>
 #include <array>
@@ -31,6 +32,7 @@ namespace portapack {
 namespace cpld {
 
 using CPLD = ::cpld::max5::CPLD;
+using CPLD_AGM = ::cpld::agm256::CPLD;
 using Config = ::cpld::max5::Config;
 
 namespace rev_20150901 {
@@ -53,7 +55,7 @@ const Config config{block_0, block_1};
 
 namespace rev_AG256SL100 {
 
-extern const std::array<uint64_t, 3606> block_0;
+extern const std::array<uint32_t, 1802> block_0;
 
 } /* namespace rev_AG256SL100 */
 

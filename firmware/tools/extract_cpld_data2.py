@@ -73,17 +73,17 @@ for line in f:
 			current_block = block_1
 
 	if phase == 'block_0' or phase == 'block_1':
-		if line.startswith('SDR 64 TDI ('):
+		if line.startswith('SDR 64 TDI (') and line.endswith('40);'):
 			# print(line.split('(', 1)[1][:16])
 			# break
-			sdr_value = int(line.split('(', 1)[1][:16], 16)
+			sdr_value = line.split('(', 1)[1][:8]
 			#print('0x%04x,' % sdr_value)
 			current_block.append(sdr_value)
 
 def print_block(block):
 	for n in range(0, len(block), 8):
 		chunk = block[n:n+8]
-		line = ['0x%04x,' % v for v in chunk]
+		line = ['0x%s,' % v for v in chunk]
 		print(('\t%s' % ' '.join(line)))
 
 
@@ -97,14 +97,8 @@ namespace cpld {
 namespace %s {
 """ % revision_name))
 
-print(('const std::array<uint64_t, %d> block_0 { {' % len(block_0)))
+print(('const std::array<uint32_t, %d> block_0 { {' % len(block_0)))
 print_block(block_0)
-
-print("""} };
-""")
-
-print(('const std::array<uint64_t, %d> block_1 { {' % len(block_1)))
-print_block(block_1)
 
 print(("""} };
 

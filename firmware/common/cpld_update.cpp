@@ -102,7 +102,7 @@ CpldUpdateStatus big_update_if_necessary() {
         portapack::gpio_cpld_tdi,
         portapack::gpio_cpld_tdo};
     jtag::JTAG jtag{target};
-    CPLD cpld{jtag};
+    CPLD_AGM cpld{jtag};
 
     const auto& data = portapack::cpld::rev_AG256SL100::block_0;
 
@@ -110,7 +110,7 @@ CpldUpdateStatus big_update_if_necessary() {
     cpld.reset();
     cpld.run_test_idle();
 
-    auto some_value = cpld.big_update();
+    auto some_value = cpld.update();
 
     return CpldUpdateStatus::Success;
 }

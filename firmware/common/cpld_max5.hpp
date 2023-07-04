@@ -62,7 +62,6 @@ class CPLD {
     uint32_t get_idcode();
 
     void enable();
-    uint32_t big_update();
 
     /* Check ID:
      * The silicon ID is checked before any Program or Verify process. The

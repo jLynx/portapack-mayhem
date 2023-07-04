@@ -135,6 +135,7 @@ set(CPPSRC
 	${COMMON}/buffer_exchange.cpp
 	${COMMON}/chibios_cpp.cpp
 	${COMMON}/cpld_max5.cpp
+	${COMMON}/cpld_agm256.cpp
 	${COMMON}/cpld_update.cpp
 	${COMMON}/cpld_xilinx.cpp
 	debug.cpp
