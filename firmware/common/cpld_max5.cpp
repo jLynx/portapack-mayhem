@@ -22,7 +22,6 @@
 #include "cpld_max5.hpp"
 
 #include "jtag.hpp"
-#include "ch.h"
 
 #include <cstdint>
 #include <array>

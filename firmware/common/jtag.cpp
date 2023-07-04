@@ -37,35 +37,10 @@ uint32_t JTAG::shift(const size_t count, uint32_t value) {
     return value;
 }
 
-// LSB is send first
-// LSB is erased, all shifted right
-// LSB is read first
-uint64_t JTAG::shift64(const size_t count, uint64_t value) {
+uint32_t JTAG::shift_header(const size_t count, uint32_t value) {
     for (size_t i = 0; i < count; i++) {
         const auto tdo = target.clock(
-            (i == (count - 1)) ? 1 : 0,
-            value & 1);
-        value >>= 1;
-        value |= tdo << (count - 1);
-    }
-    return value;
-}
-
-uint32_t JTAG::shift64_one(const size_t count, uint32_t value) {
-    for (size_t i = 0; i < count; i++) {
-        const auto tdo = target.clock(
-            /*(i == (count - 1)) ? 1 :*/ 0,
-            value & 1);
-        value >>= 1;
-        value |= tdo << (count - 1);
-    }
-    return value;
-}
-
-uint32_t JTAG::shift64_two(const size_t count, uint32_t value) {
-    for (size_t i = 0; i < count; i++) {
-        const auto tdo = target.clock(
-            (i == (count - 1)) ? 1 : 0,
+            0,
             value & 1);
         value >>= 1;
         value |= tdo << (count - 1);
