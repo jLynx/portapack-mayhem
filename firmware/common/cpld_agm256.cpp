@@ -83,7 +83,12 @@ void CPLD::enter_maintenance_mode() {
     jtag.runtest_tck(100);
     jtag.shift_dr(8, 0x0);
 
+    shift_ir(instruction_t::AGM_PROGRAM);
+    jtag.runtest_tck(100);
+    jtag.shift_dr(32, 0x203f0044uL, 0x80000000);
+
     shift_ir(instruction_t::IDCODE);
+    jtag.runtest_tck(100);
     auto idcode = jtag.shift_dr(idcode_length, 0);
 
     if (idcode != 0x00025610) {
@@ -113,17 +118,27 @@ bool CPLD::verify(const std::array<uint32_t, 1802>& block) {
     for (size_t i = 0; i < block.size(); i++) {
         auto address = encode_address(i * 4, 0xC0);
         const auto from_device = jtag.shift_dr(32, address, 0x0);
+
+        // TODO: debug program step
+        if (from_device == 0xFFFFFFFF) {
+            panic_screen(6);
+        }
+        while (true)
+            ;
+
         if (from_device != data[i]) {
+            while (true)
+                ;
             return false;
+        } else {
+            while (true)
+                ;
         }
     }
     return true;
 }
 
 bool CPLD::program(const std::array<uint32_t, 1802>& block) {
-    // panic_screen(6);
-    // return false;
-
     shift_ir(instruction_t::AGM_SET_REGISTER);
     jtag.runtest_tck(100);
     jtag.shift_dr(8, 0xf0);
@@ -131,6 +146,15 @@ bool CPLD::program(const std::array<uint32_t, 1802>& block) {
     shift_ir(instruction_t::AGM_ERASE);
     jtag.runtest_tck(100);
     jtag.runtest_ms(500);
+
+    // ////////
+    // exit_maintenance_mode();
+
+    // reset();
+    // run_test_idle();
+
+    // enter_maintenance_mode();
+    // /////////
 
     shift_ir(instruction_t::AGM_SET_REGISTER);
     jtag.runtest_tck(100);

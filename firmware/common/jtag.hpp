@@ -60,7 +60,7 @@ class JTAG {
     void runtest_ms(const size_t count) {
         auto starttime = chTimeNow();
 
-        while (chTimeNow() - starttime < count)
+        while ((chTimeNow() - starttime) < (count + 1))
             target.clock(0, 0);
     }
 
