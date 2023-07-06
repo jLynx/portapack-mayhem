@@ -115,7 +115,7 @@ CpldUpdateStatus big_update_if_necessary() {
 
     /* Verify CPLD contents against current bitstream. */
     const auto& data = portapack::cpld::rev_AG256SL100::block_0;
-    auto ok = false;  // cpld.verify(data);  //
+    auto ok = cpld.verify(data);
 
     if (!ok) {
         ok = cpld.program(data);
