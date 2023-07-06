@@ -82,10 +82,11 @@ void CPLD::enter_maintenance_mode() {
     shift_ir(instruction_t::AGM_SET_REGISTER);
     jtag.runtest_tck(100);
     jtag.shift_dr(8, 0x0);
-
-    shift_ir(instruction_t::AGM_PROGRAM);
     jtag.runtest_tck(100);
-    jtag.shift_dr(32, 0x203f0044uL, 0x80000000);
+
+    // shift_ir(instruction_t::AGM_PROGRAM);
+    // jtag.runtest_tck(100);
+    // jtag.shift_dr(32, 0x203f0044uL, 0x80000000);
 
     shift_ir(instruction_t::IDCODE);
     jtag.runtest_tck(100);
@@ -109,6 +110,7 @@ bool CPLD::verify(const std::array<uint32_t, 1802>& block) {
     shift_ir(instruction_t::AGM_SET_REGISTER);
     jtag.runtest_tck(100);
     jtag.shift_dr(8, 0xf0);
+    jtag.runtest_tck(100);
 
     shift_ir(instruction_t::AGM_READ);
     jtag.runtest_tck(100);
@@ -142,6 +144,7 @@ bool CPLD::program(const std::array<uint32_t, 1802>& block) {
     shift_ir(instruction_t::AGM_SET_REGISTER);
     jtag.runtest_tck(100);
     jtag.shift_dr(8, 0xf0);
+    jtag.runtest_tck(100);
 
     shift_ir(instruction_t::AGM_ERASE);
     jtag.runtest_tck(100);
@@ -159,12 +162,23 @@ bool CPLD::program(const std::array<uint32_t, 1802>& block) {
     shift_ir(instruction_t::AGM_SET_REGISTER);
     jtag.runtest_tck(100);
     jtag.shift_dr(8, 0xf0);
+    jtag.runtest_tck(100);
 
     shift_ir(instruction_t::AGM_PROGRAM);
     jtag.runtest_tck(100);
 
     auto data = block.data();
-    for (size_t i = 0; i < block.size(); i++) {
+    for (size_t i = 0; i < 0x12B; i++) {
+        auto address = encode_address(i * 4, 0x40);
+        jtag.shift_dr(32, address, data[i]);
+        jtag.runtest_ms(2);
+    }
+
+    // sdr 64 -tdi 219fbb3e00000040
+    jtag.shift_dr(32, 0x00000040, 0x219fbb3e);
+    jtag.runtest_ms(2);
+
+    for (size_t i = 0x12B; i < block.size(); i++) {
         auto address = encode_address(i * 4, 0x40);
         jtag.shift_dr(32, address, data[i]);
         jtag.runtest_ms(2);
