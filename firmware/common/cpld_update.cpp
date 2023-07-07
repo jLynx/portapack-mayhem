@@ -111,10 +111,15 @@ CpldUpdateStatus big_update_if_necessary() {
     cpld.reset();
     cpld.run_test_idle();
 
-    cpld.enter_maintenance_mode();
+    auto entered_maintenance_mode = cpld.enter_maintenance_mode();
+
+    if (!entered_maintenance_mode) {
+        return CpldUpdateStatus::Program_failed;
+    }
 
     /* Verify CPLD contents against current bitstream. */
     const auto& data = portapack::cpld::rev_AG256SL100::block_0;
+    // TODO: check if cpld is clean or has an official fw
     auto ok = cpld.verify(data);
 
     if (!ok) {
@@ -124,11 +129,12 @@ CpldUpdateStatus big_update_if_necessary() {
     /* If programming OK, reset CPLD to user mode. Otherwise leave it in
      * passive (ISP) state.
      */
-    // if (ok) {
-    cpld.exit_maintenance_mode();
-    //}
+    if (ok) {
+        cpld.exit_maintenance_mode();
+        return CpldUpdateStatus::Success;
+    }
 
-    return ok ? CpldUpdateStatus::Success : CpldUpdateStatus::Program_failed;
+    return CpldUpdateStatus::Program_failed;
 }
 
 } /* namespace cpld */
