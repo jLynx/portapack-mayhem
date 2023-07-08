@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #
-# Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+# Copyright (C) 2023 Bernd Herzog
 #
 # This file is part of PortaPack.
 #
@@ -21,64 +21,17 @@
 # Boston, MA 02110-1301, USA.
 #
 
-# Very fragile code to extract data from Altera MAX V CPLD SVF
+# Very fragile code to extract data from AGM CPLD PRG
 
 import sys
 
-if len(sys.argv) != 3:
-	print('Usage: <command> <Altera MAX V CPLD SVF file path> <revision name>')
-	sys.exit(-1)
-
-f = open(sys.argv[1], 'r')
-revision_name = sys.argv[2]
-
-
-# !PROGRAM
-# SIR 10 TDI (203);
-# RUNTEST 93 TCK;
-# SDR 13 TDI (0000);
-# SIR 10 TDI (2F4);
-# RUNTEST 93 TCK;
-# while:
-	# SDR 16 TDI (7FFF);
-	# RUNTEST 1800 TCK;
-# SIR 10 TDI (203);
-# RUNTEST 93 TCK;
-# SDR 13 TDI (0001);
-# SIR 10 TDI (2F4);
-# RUNTEST 93 TCK;
-
-phase = None
-
-block_0 = []
-block_1 = []
-current_block = None
-
-phase = 'block_0'
-current_block = block_0
-
-for line in f:
-	line = line.strip().upper()
-
-	# if line == '!PROGRAM':
-	# 	phase = 'block_0'
-	# 	current_block = block_0
-	# elif line == '!VERIFY':
-	# 	phase = 'verify'
-	# 	current_block = None
-
-	if phase == 'block_0':
-		if line == 'SDR 8 TDI (f8);':
-			phase = 'block_1'
-			current_block = block_1
-
-	if phase == 'block_0' or phase == 'block_1':
-		if line.startswith('SDR 64 TDI (') and line.endswith('40);'):
-			# print(line.split('(', 1)[1][:16])
-			# break
-			sdr_value = line.split('(', 1)[1][:8]
-			#print('0x%04x,' % sdr_value)
-			current_block.append(sdr_value)
+def reverseBits(num, bitSize):
+    binary = bin(num)
+     
+    reverse = binary[-1:1:-1]
+    reverse = reverse + (bitSize - len(reverse))*'0'
+     
+    return (int(reverse, 2))  
 
 def print_block(block):
 	for n in range(0, len(block), 8):
@@ -86,6 +39,39 @@ def print_block(block):
 		line = ['0x%s,' % v for v in chunk]
 		print(('\t%s' % ' '.join(line)))
 
+if len(sys.argv) != 3:
+	print('Usage: <command> <AGM CPLD PRG file path> <revision name>')
+	sys.exit(-1)
+
+f = open(sys.argv[1], 'r')
+revision_name = sys.argv[2]
+
+data_block = []
+expected_address = 0
+magic_value = None
+
+for line in f:
+	line = line.strip().upper()
+	if line.startswith('SDR 64 -TDI ') and line.endswith('0040'):
+		#sdr 64 -tdi 0200000015200040
+		sdr_value = line.split(' ')[3]
+		address = int(reverseBits(int(sdr_value[8:], 16) - 64, 32) / 4)
+		data_entry = sdr_value[:8]
+
+		if (expected_address == 299 and address == 0):
+			magic_value = data_entry
+			continue
+
+		if (expected_address != address):
+			print("err at address {}: {}".format(expected_address, line))
+			sys.exit(1)
+
+		data_block.append(data_entry)
+		expected_address += 1
+
+if (magic_value == None):
+	print("magic value not found!")
+	sys.exit(1)
 
 print(("""#include "portapack_cpld_data.hpp"
 
@@ -97,11 +83,15 @@ namespace cpld {
 namespace %s {
 """ % revision_name))
 
-print(('const std::array<uint32_t, %d> block_0 { {' % len(block_0)))
-print_block(block_0)
+print(('const std::array<uint32_t, %d> data { {' % len(data_block)))
+print_block(data_block)
 
-print(("""} };
+print("""} };
+""")
 
+print(('constexpr uint32_t data_magic = 0x%s;' % magic_value))
+
+print(("""
 } /* namespace %s */
 } /* namespace cpld */
 } /* namespace portapack */

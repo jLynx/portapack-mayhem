@@ -55,7 +55,8 @@ const Config config{block_0, block_1};
 
 namespace rev_AG256SL100 {
 
-extern const std::array<uint32_t, 1802> block_0;
+extern const std::array<uint32_t, 1801> data;
+extern const uint32_t data_magic;
 
 } /* namespace rev_AG256SL100 */
 

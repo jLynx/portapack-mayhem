@@ -51,8 +51,8 @@ class CPLD {
     bool enter_maintenance_mode();
     void exit_maintenance_mode();
 
-    bool verify(const std::array<uint32_t, 1802>& block_0);
-    bool program(const std::array<uint32_t, 1802>& block_0);
+    bool verify(const std::array<uint32_t, 1801>& block_0);
+    bool program(const std::array<uint32_t, 1801>& block_0, uint32_t magic_value);
 
     uint32_t encode_address(uint32_t address, uint32_t trailer);
 
@@ -80,16 +80,6 @@ class CPLD {
 
     void shift_ir(const uint32_t value) {
         jtag.shift_ir(ir_length, value);
-    }
-
-    void shift_dr(std::bitset<240>& value) {
-        for (size_t i = 0; i < value.size(); i++) {
-            value[i] = shift_dr(1, value[i]);
-        }
-    }
-
-    uint32_t shift_dr(const size_t count, const uint32_t value) {
-        return jtag.shift_dr(count, value);
     }
 
     jtag::JTAG& jtag;

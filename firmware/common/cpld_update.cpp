@@ -118,12 +118,12 @@ CpldUpdateStatus big_update_if_necessary() {
     }
 
     /* Verify CPLD contents against current bitstream. */
-    const auto& data = portapack::cpld::rev_AG256SL100::block_0;
+    const auto& data = portapack::cpld::rev_AG256SL100::data;
     // TODO: check if cpld is clean or has an official fw
     auto ok = cpld.verify(data);
 
     if (!ok) {
-        ok = cpld.program(data);
+        ok = cpld.program(data, portapack::cpld::rev_AG256SL100::data_magic);
     }
 
     /* If programming OK, reset CPLD to user mode. Otherwise leave it in
