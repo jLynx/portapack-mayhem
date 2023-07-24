@@ -33,17 +33,17 @@ set(LZ4 lz4)
 set(FIRMWARE_NAME portapack-h1_h2-mayhem)
 set(FIRMWARE_FILENAME ${FIRMWARE_NAME}.bin)
 
-add_subdirectory(application)
 add_subdirectory(joel)
+add_subdirectory(application)
 add_subdirectory(baseband)
 add_subdirectory(test)
 
 # NOTE: Dependencies break if the .bin files aren't included in DEPENDS. WTF, CMake?
 add_custom_command(
 	OUTPUT ${FIRMWARE_FILENAME}
-	COMMAND ${MAKE_SPI_IMAGE} ${application_BINARY_DIR}/application.bin ${application_BINARY_DIR}/joel.bin ${baseband_BINARY_DIR}/baseband.img ${FIRMWARE_FILENAME}
+	COMMAND ${MAKE_SPI_IMAGE} ${joel_BINARY_DIR}/joel.bin ${application_BINARY_DIR}/application.bin ${baseband_BINARY_DIR}/baseband.img ${FIRMWARE_FILENAME}
 	DEPENDS baseband application ${MAKE_SPI_IMAGE}
-		 ${baseband_BINARY_DIR}/baseband.img ${application_BINARY_DIR}/application.bin
+		 ${baseband_BINARY_DIR}/baseband.img ${application_BINARY_DIR}/application.bin ${joel_BINARY_DIR}/joel.bin
 	VERBATIM
 )
 
