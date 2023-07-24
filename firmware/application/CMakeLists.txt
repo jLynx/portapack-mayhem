@@ -459,6 +459,14 @@ add_custom_command(
 	DEPENDS ${HACKRF_CPLD_TOOL} ${HACKRF_CPLD_XSVF_PATH}
 )
 
+add_executable(joel.elf ${CSRC} app.cpp ${ASMSRC})
+set_target_properties(joel.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
+add_definitions(${DEFS})
+include_directories(. ${INCDIR})
+link_directories(${LLIBDIR})
+target_link_libraries(joel.elf ${LIBS})
+target_link_libraries(joel.elf -Wl,-Map=joel.map)
+
 add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})
 set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
 add_definitions(${DEFS})
