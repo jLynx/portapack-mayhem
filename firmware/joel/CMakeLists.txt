@@ -131,15 +131,11 @@ set(ASMSRC
 	lz4.S
 )
 
+# ToDo: Maybe remove some stuff here?
 set(INCDIR ${CMAKE_CURRENT_BINARY_DIR} ${COMMON} ${PORTINC} ${KERNINC} ${TESTINC}
 	${HALINC} ${PLATFORMINC} ${BOARDINC}
 	${FATFSINC}
 	${CHIBIOS}/os/various
-	ui
-	hw
-	apps
-	protocols
-	bitmaps
 )
 
 #
