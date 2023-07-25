@@ -21,8 +21,6 @@ namespace ui
         };
 
     private:
-
-        int read_file(std::string name);
         void runAppFromSDCard();
 
         // Private declarations
