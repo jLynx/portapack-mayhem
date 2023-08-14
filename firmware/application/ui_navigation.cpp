@@ -78,6 +78,7 @@
 #include "ui_sd_over_usb.hpp"
 #include "ui_spectrum_painter.hpp"
 #include "ui_ss_viewer.hpp"
+#include "ui_newapp.hpp"
 
 // #include "acars_app.hpp"
 #include "ais_app.hpp"
@@ -572,6 +573,7 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
         {"Wipe SD card", Color::red(), &bitmap_icon_tools_wipesd, [&nav]() { nav.push<WipeSDView>(); }},
         {"Flash Utility", Color::red(), &bitmap_icon_temperature, [&nav]() { nav.push<FlashUtilityView>(); }},
         {"SD over USB", Color::yellow(), &bitmap_icon_hackrf, [&nav]() { nav.push<SdOverUsbView>(); }},
+        {"Run from SD", Color::yellow(), &bitmap_icon_hackrf, [&nav]() { nav.push<NewAppView>(); }},
     });
     set_max_rows(2);  // allow wider buttons
 }

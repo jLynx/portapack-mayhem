@@ -33,6 +33,7 @@ set(LZ4 lz4)
 set(FIRMWARE_NAME portapack-h1_h2-mayhem)
 set(FIRMWARE_FILENAME ${FIRMWARE_NAME}.bin)
 
+# add_subdirectory(joel)
 add_subdirectory(application)
 add_subdirectory(baseband)
 add_subdirectory(test)
