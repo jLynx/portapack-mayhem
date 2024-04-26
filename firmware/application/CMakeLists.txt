@@ -176,7 +176,9 @@ set(CPPSRC
 	${COMMON}/ui_language.cpp
 	${COMMON}/utility.cpp
 	${COMMON}/wm8731.cpp
+	${COMMON}/ads1110.cpp
 	${COMMON}/performance_counter.cpp
+	${COMMON}/bmpfile.cpp
 	app_settings.cpp
 	audio.cpp
 	baseband_api.cpp
@@ -225,6 +227,7 @@ set(CPPSRC
 	tone_key.cpp
 	transmitter_model.cpp
 	tuning.cpp
+	usb_serial_asyncmsg.hpp
 	hw/debounce.cpp
 	hw/encoder.cpp
 	hw/max2837.cpp
@@ -259,6 +262,7 @@ set(CPPSRC
 	ui/ui_textentry.cpp
 	ui/ui_tone_key.cpp
 	ui/ui_transmitter.cpp
+	ui/ui_bmpview.cpp
 	apps/acars_app.cpp
 	apps/ais_app.cpp
 	apps/analog_audio_app.cpp
@@ -281,6 +285,7 @@ set(CPPSRC
 	apps/ui_aprs_rx.cpp
 	apps/ui_aprs_tx.cpp
 	apps/ui_bht_tx.cpp
+	apps/ui_bmp_file_viewer.cpp
 	apps/ui_btle_rx.cpp
 	# apps/ui_coasterp.cpp
 	apps/ui_debug.cpp
