@@ -51,10 +51,18 @@ void IO::init() {
     gpio_addr.output();
     gpio_rot_a.input();
     gpio_rot_b.input();
+
+    set_sysoff(false);
 }
 
 void IO::lcd_backlight(const bool value) {
     io_reg = (io_reg & 0x7f) | ((value ? 1 : 0) << 7);
+    io_write(1, io_reg);
+}
+
+// Add this new method to control SYSOFF
+void IO::set_sysoff(bool state) {
+    io_reg = (io_reg & 0xfb) | ((state ? 1 : 0) << 2);
     io_write(1, io_reg);
 }
 

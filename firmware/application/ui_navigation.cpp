@@ -355,8 +355,9 @@ SystemStatusView::SystemStatusView(
     };
 
     button_sleep.on_select = [this](ImageButton&) {
-        DisplaySleepMessage message;
-        EventDispatcher::send_message(message);
+        // DisplaySleepMessage message;
+        // EventDispatcher::send_message(message);
+        portapack::io.set_sysoff(true);
     };
 
     button_clock_status.on_select = [this](ImageButton&) {
