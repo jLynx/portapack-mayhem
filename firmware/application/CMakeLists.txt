@@ -86,7 +86,8 @@ set(CPLD_20150901_DATA_CPP ${CMAKE_CURRENT_BINARY_DIR}/portapack_cpld_20150901_d
 set(CPLD_20170522_SVF_PATH ${HARDWARE_PATH}/portapack_h1/cpld/20170522/output_files/portapack_h1_cpld.svf)
 set(CPLD_20170522_DATA_CPP ${CMAKE_CURRENT_BINARY_DIR}/portapack_cpld_20170522_data.cpp)
 
-set(CPLD_AG256SL100_PRG_PATH ${HARDWARE_PATH}/portapack_h2/cpld/AG256SL100/output_files/portapack_h2_cpld.prg)
+# set(CPLD_AG256SL100_PRG_PATH ${HARDWARE_PATH}/portapack_h2/cpld/AG256SL100/output_files/portapack_h2_cpld.prg)
+set(CPLD_AG256SL100_PRG_PATH ${HARDWARE_PATH}/portapack_h2/cpld/AG256SL100/output_files/portapack_h4m_cpld.prg)
 set(CPLD_AG256SL100_DATA_CPP ${CMAKE_CURRENT_BINARY_DIR}/portapack_cpld_AG256SL100_data.cpp)
 
 
