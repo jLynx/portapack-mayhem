@@ -87,6 +87,10 @@ set(EXTCPPSRC
 	external/tpmstx/main.cpp
 	external/tpmstx/tpms_tx_app.cpp
 
+	#tpmsxcvr - TPMS half-duplex transceiver (RX + TX combined)
+	external/tpmsxcvr/main.cpp
+	external/tpmsxcvr/tpms_xcvr_app.cpp
+
 	#protoview 8 byte
 	external/protoview/main.cpp
 	external/protoview/ui_protoview.cpp
@@ -331,6 +335,7 @@ set(EXTAPPLIST
 	wardrivemap
 	tpmsrx
 	tpmstx
+	tpmsxcvr
 	protoview
 	adsbtx
 	#morse_tx
