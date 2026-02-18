@@ -200,6 +200,7 @@ void TPMSXcvrView::start_rx() {
     mode_ = Mode::Receiving;
     // Reload embedded TPMS baseband (TPMS not in SPI flash, only embedded)
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    chThdSleepMilliseconds(100);  // Allow baseband to fully initialize before enabling receiver
     receiver_model.enable();
     receiver_model.set_target_frequency(options_band.selected_index_value());
     text_status.set("RX Active");
@@ -215,7 +216,7 @@ void TPMSXcvrView::stop_rx() {
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
-    chThdSleepMilliseconds(50);
+    chThdSleepMilliseconds(100);  // Increased delay for clean RX shutdown
 }
 
 // ============================================================
@@ -223,16 +224,15 @@ void TPMSXcvrView::stop_rx() {
 // ============================================================
 void TPMSXcvrView::switch_baseband_tx() {
     // Switch baseband image from SPI flash based on signal type
-    baseband::shutdown();
-    chThdSleepMilliseconds(100);
-    
+    // Note: baseband::shutdown() already called in stop_rx()
+
     if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
         baseband::run_image(portapack::spi_flash::image_tag_fsktx);
     } else {
         baseband::run_image(portapack::spi_flash::image_tag_ook);
     }
-    
-    chThdSleepMilliseconds(100);
+
+    chThdSleepMilliseconds(50);  // Allow baseband to initialize
 }
 
 void TPMSXcvrView::start_tx() {
@@ -270,6 +270,8 @@ void TPMSXcvrView::stop_tx() {
 
     is_transmitting_ = false;
     transmitter_model.disable();
+    baseband::shutdown();
+    chThdSleepMilliseconds(100);  // Ensure TX baseband fully stopped
 
     button_transmit.set_text("TRANSMIT");
     text_status.set("TX done – resuming RX");
@@ -481,7 +483,7 @@ TPMSXcvrView::TPMSXcvrView(NavigationView& nav)
     : nav_{nav} {
     // Load the embedded TPMS baseband (TPMS is not in SPI flash)
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
-    
+
     add_children({
         &rssi,
         &field_volume,
@@ -617,7 +619,7 @@ TPMSXcvrView::TPMSXcvrView(NavigationView& nav)
 
     // Initialize options_band before starting RX
     options_band.set_by_value(receiver_model.target_frequency());
-    
+
     // Start in RX mode - baseband already loaded above, just enable receiver
     mode_ = Mode::Receiving;
     receiver_model.enable();
