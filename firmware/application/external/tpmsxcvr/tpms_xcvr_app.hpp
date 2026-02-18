@@ -41,23 +41,63 @@
 #include "string_format.hpp"
 #include "units.hpp"
 
-// Share the RX entry/logger/view types from tpmsrx to avoid code duplication.
-#include "../tpmsrx/tpms_app.hpp"
-
 namespace ui::external_app::tpmsxcvr {
 
-// Reuse all RX-side types from tpmsrx to avoid duplicating the
-// RecentEntriesTable<> specialisation and related code.
-using TPMSXcvrRecentEntry = ui::external_app::tpmsrx::TPMSRecentEntry;
-using TPMSXcvrRecentEntries = ui::external_app::tpmsrx::TPMSRecentEntries;
-using TPMSXcvrRecentEntriesView = ui::external_app::tpmsrx::TPMSRecentEntriesView;
-using TPMSXcvrLogger = ui::external_app::tpmsrx::TPMSLogger;
-
-// Settings pressure/temp units are shared with the tpmsrx namespace.
+// Pressure/temperature unit settings for display formatting
 namespace format {
-using ui::external_app::tpmsrx::format::pressure_unit;
-using ui::external_app::tpmsrx::format::temp_unit;
+static uint8_t pressure_unit{PRESSURE_UNIT_KPA};
+static uint8_t temp_unit{TEMP_UNIT_CELSIUS};
 }  // namespace format
+
+// ---------------------------------------------------------------
+// Entry tracking
+// ---------------------------------------------------------------
+struct TPMSXcvrRecentEntry {
+    using Key = std::pair<tpms::Reading::Type, tpms::TransponderID>;
+
+    static const Key invalid_key;
+
+    tpms::Reading::Type type{invalid_key.first};
+    tpms::TransponderID id{invalid_key.second};
+    tpms::SignalType signal_type{tpms::SignalType::OOK_8k192_Schrader};
+
+    size_t received_count{0};
+
+    Optional<Pressure> last_pressure{};
+    Optional<Temperature> last_temperature{};
+    Optional<tpms::Flags> last_flags{};
+
+    TPMSXcvrRecentEntry(
+        const Key& key)
+        : type{key.first},
+          id{key.second} {
+    }
+
+    Key key() const {
+        return {type, id};
+    }
+
+    void update(const tpms::Reading& reading);
+};
+
+using TPMSXcvrRecentEntries = RecentEntries<TPMSXcvrRecentEntry>;
+
+// ---------------------------------------------------------------
+// Logger
+// ---------------------------------------------------------------
+class TPMSXcvrLogger {
+   public:
+    Optional<File::Error> append(const std::filesystem::path& filename) {
+        return log_file.append(filename);
+    }
+
+    void on_packet(const tpms::Packet& packet, const uint32_t target_frequency);
+
+   private:
+    LogFile log_file{};
+};
+
+using TPMSXcvrRecentEntriesView = RecentEntriesView<TPMSXcvrRecentEntries>;
 
 // ---------------------------------------------------------------
 // Main transceiver view

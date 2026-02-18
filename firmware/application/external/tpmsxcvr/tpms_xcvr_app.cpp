@@ -38,8 +38,102 @@ namespace pmem = portapack::persistent_memory;
 
 namespace ui::external_app::tpmsxcvr {
 
-// Bring in the tpmsrx format helpers so we can call them directly.
-using namespace ui::external_app::tpmsrx::format;
+// ============================================================
+// Format helper functions
+// ============================================================
+namespace format {
+
+std::string type(tpms::Reading::Type type) {
+    return to_string_dec_uint(toUType(type), 2);
+}
+
+std::string type_name(tpms::Reading::Type type) {
+    switch (type) {
+        case tpms::Reading::Type::None:
+            return "None";
+        case tpms::Reading::Type::FLM_64:
+            return "FLM_64";
+        case tpms::Reading::Type::FLM_72:
+            return "FLM_72";
+        case tpms::Reading::Type::FLM_80:
+            return "FLM_80";
+        case tpms::Reading::Type::Schrader:
+            return "Schrader";
+        case tpms::Reading::Type::GMC_96:
+            return "GMC_96";
+        default:
+            return "Unknown";
+    }
+}
+
+std::string id(tpms::TransponderID id) {
+    return to_string_hex(id.value(), 8);
+}
+
+std::string pressure(Pressure pressure) {
+    return to_string_dec_int(pressure_unit == PRESSURE_UNIT_PSI ? pressure.psi() : pressure_unit == PRESSURE_UNIT_BAR ? pressure.bar()
+                                                                                                                      : pressure.kilopascal(),
+                             3);
+}
+
+std::string temperature(Temperature temperature) {
+    return to_string_dec_int(temp_unit == TEMP_UNIT_CELSIUS ? temperature.celsius() : temperature.fahrenheit(), 3);
+}
+
+std::string flags(tpms::Flags flags) {
+    return to_string_hex(flags, 2);
+}
+
+static std::string signal_type(tpms::SignalType signal_type) {
+    switch (signal_type) {
+        case tpms::SignalType::FSK_19k2_Schrader:
+            return "FSK 38400 19200 Schrader";
+        case tpms::SignalType::OOK_8k192_Schrader:
+            return "OOK - 8192 Schrader";
+        case tpms::SignalType::OOK_8k4_Schrader:
+            return "OOK - 8400 Schrader";
+        default:
+            return "- - - -";
+    }
+}
+
+}  // namespace format
+
+// ============================================================
+// TPMSLogger implementation
+// ============================================================
+void TPMSXcvrLogger::on_packet(const tpms::Packet& packet, const uint32_t target_frequency) {
+    const auto hex_formatted = packet.symbols_formatted();
+
+    // TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
+    const auto target_frequency_str = to_string_dec_uint(target_frequency, 10);
+
+    std::string entry = target_frequency_str + " " + format::signal_type(packet.signal_type()) + " " + hex_formatted.data + "/" + hex_formatted.errors;
+    log_file.write_entry(packet.received_at(), entry);
+}
+
+// ============================================================
+// TPMSXcvrRecentEntry implementation
+// ============================================================
+const TPMSXcvrRecentEntry::Key TPMSXcvrRecentEntry::invalid_key = {tpms::Reading::Type::None, 0};
+
+void TPMSXcvrRecentEntry::update(const tpms::Reading& reading) {
+    received_count++;
+
+    if (reading.pressure().is_valid()) {
+        last_pressure = reading.pressure();
+    }
+    if (reading.temperature().is_valid()) {
+        last_temperature = reading.temperature();
+    }
+    if (reading.flags().is_valid()) {
+        last_flags = reading.flags();
+    }
+}
+
+// ============================================================
+// Helper methods
+// ============================================================
 
 void TPMSXcvrView::update_signal_type_from_packet() {
     switch (packet_type_) {
@@ -104,8 +198,8 @@ void TPMSXcvrView::update_packet_display() {
 // ============================================================
 void TPMSXcvrView::start_rx() {
     mode_ = Mode::Receiving;
-    // Load the TPMS baseband image and enable the receiver
-    baseband::run_image(portapack::spi_flash::image_tag_tpms);
+    // Reload embedded TPMS baseband (TPMS not in SPI flash, only embedded)
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
     receiver_model.enable();
     receiver_model.set_target_frequency(options_band.selected_index_value());
     text_status.set("RX Active");
@@ -128,13 +222,16 @@ void TPMSXcvrView::stop_rx() {
 //  TX control
 // ============================================================
 void TPMSXcvrView::switch_baseband_tx() {
+    // Switch baseband image from SPI flash based on signal type
     baseband::shutdown();
     chThdSleepMilliseconds(100);
+    
     if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
         baseband::run_image(portapack::spi_flash::image_tag_fsktx);
     } else {
         baseband::run_image(portapack::spi_flash::image_tag_ook);
     }
+    
     chThdSleepMilliseconds(100);
 }
 
@@ -367,7 +464,10 @@ void TPMSXcvrView::on_packet(const tpms::Packet& packet) {
 }
 
 void TPMSXcvrView::on_show_detail(const TPMSXcvrRecentEntry& entry) {
-    nav_.push<ui::external_app::tpmsrx::TPMSRecentEntryDetailView>(entry);
+    // TODO: Implement detail view for tpmsxcvr
+    // For now, the detail view is disabled to avoid cross-app references
+    (void)entry;
+    // nav_.push<TPMSXcvrRecentEntryDetailView>(entry);
 }
 
 void TPMSXcvrView::update_view() {
@@ -379,6 +479,9 @@ void TPMSXcvrView::update_view() {
 // ============================================================
 TPMSXcvrView::TPMSXcvrView(NavigationView& nav)
     : nav_{nav} {
+    // Load the embedded TPMS baseband (TPMS is not in SPI flash)
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    
     add_children({
         &rssi,
         &field_volume,
@@ -515,8 +618,17 @@ TPMSXcvrView::TPMSXcvrView(NavigationView& nav)
     // Initialize options_band before starting RX
     options_band.set_by_value(receiver_model.target_frequency());
     
-    // Start in RX mode
-    start_rx();
+    // Start in RX mode - baseband already loaded above, just enable receiver
+    mode_ = Mode::Receiving;
+    receiver_model.enable();
+    receiver_model.set_target_frequency(options_band.selected_index_value());
+    text_status.set("RX Active");
+    button_transmit.set_text("TRANSMIT");
+    progressbar.set_value(0);
+    if (pmem::beep_on_packets()) {
+        audio::set_rate(audio::Rate::Hz_24000);
+        audio::output::start();
+    }
 }
 
 TPMSXcvrView::~TPMSXcvrView() {
@@ -540,6 +652,53 @@ void TPMSXcvrView::set_parent_rect(const Rect new_parent_rect) {
 
 }  // namespace ui::external_app::tpmsxcvr
 
-// No RecentEntriesTable<> specialisation needed here —
-// TPMSXcvrRecentEntries is a type alias for tpmsrx::TPMSRecentEntries,
-// so the existing specialisation in tpms_app.cpp is reused automatically.
+namespace ui {
+
+// RecentEntriesTable specialization for TPMSXcvrRecentEntries
+template <>
+void RecentEntriesTable<ui::external_app::tpmsxcvr::TPMSXcvrRecentEntries>::draw(
+    const Entry& entry,
+    const Rect& target_rect,
+    Painter& painter,
+    const Style& style,
+    RecentEntriesColumns& columns) {
+    std::string line = ui::external_app::tpmsxcvr::format::type(entry.type) + " ";
+    std::string lid = ui::external_app::tpmsxcvr::format::id(entry.id);
+    lid.resize(columns.at(1).second, ' ');
+    line += lid;
+
+    if (entry.last_pressure.is_valid()) {
+        line += "  " + ui::external_app::tpmsxcvr::format::pressure(entry.last_pressure.value());
+    } else {
+        line +=
+            "  "
+            "   ";
+    }
+
+    if (entry.last_temperature.is_valid()) {
+        line += "  " + ui::external_app::tpmsxcvr::format::temperature(entry.last_temperature.value());
+    } else {
+        line +=
+            "  "
+            "   ";
+    }
+
+    if (entry.received_count > 999) {
+        line += " +++";
+    } else {
+        line += " " + to_string_dec_uint(entry.received_count, 3);
+    }
+
+    if (entry.last_flags.is_valid()) {
+        line += " " + ui::external_app::tpmsxcvr::format::flags(entry.last_flags.value());
+    } else {
+        line +=
+            " "
+            "  ";
+    }
+
+    line.resize(target_rect.width() / 8, ' ');
+    painter.draw_string(target_rect.location(), style, line);
+}
+
+}  // namespace ui

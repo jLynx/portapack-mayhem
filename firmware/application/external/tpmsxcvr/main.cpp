@@ -77,9 +77,8 @@ __attribute__((section(".external_app.app_tpmsxcvr.application_information"), us
     /*.menu_location = */ app_location_t::TRX,
     /*.desired_menu_position = */ -1,
 
-    // The XCVR app starts in RX mode so it needs the TPMS baseband image.
-    // The TX path switches images at runtime before transmitting.
+    // Embed TPMS baseband (for RX startup), then switch to FSK/OOK from SPI flash for TX
     /*.m4_app_tag = portapack::spi_flash::image_tag_tpms */ {'P', 'T', 'P', 'M'},
-    /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
+    /*.m4_app_offset = */ 0x00000000  // will be filled at compile time
 };
 }
